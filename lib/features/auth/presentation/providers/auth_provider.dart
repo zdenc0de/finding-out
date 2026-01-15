@@ -32,7 +32,7 @@ final isAuthenticatedProvider = Provider<bool>((ref) {
 });
 
 // Estado para el notifier
-enum AuthStatus { initial, loading, authenticated, unauthenticated, error }
+enum AuthStatus { initial, loading, authenticated, unauthenticated, pendingVerification, error }
 
 class AuthState {
   final AuthStatus status;
@@ -107,6 +107,11 @@ class AuthNotifier extends StateNotifier<AuthState> {
       );
       state = AuthState(status: AuthStatus.authenticated, user: user);
     } catch (e) {
+      // Verificación de email requerida (registro exitoso)
+      if (e.toString().contains('EMAIL_VERIFICATION_REQUIRED')) {
+        state = const AuthState(status: AuthStatus.pendingVerification);
+        return;
+      }
       state = AuthState(
         status: AuthStatus.error,
         errorMessage: e.toString(),

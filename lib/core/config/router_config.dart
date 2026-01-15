@@ -9,12 +9,14 @@ import '../../features/auth/presentation/providers/auth_provider.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/register_screen.dart';
 import '../../features/home/presentation/screens/home_screen.dart';
+import '../../features/profile/presentation/screens/profile_screen.dart';
 
 /// Nombres de las rutas para evitar errores de tipeo
 abstract class AppRoutes {
   static const String login = '/login';
   static const String register = '/register';
   static const String home = '/home';
+  static const String profile = '/profile';
 }
 
 /// Provider de GoRouter que escucha cambios de autenticación
@@ -61,6 +63,16 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.home,
         name: 'home',
         builder: (context, state) => const HomeScreen(),
+      ),
+
+      // ─────────────────────────────────────────────────────────────────
+      // RUTA: /profile
+      // Pantalla de perfil del usuario (requiere autenticación)
+      // ─────────────────────────────────────────────────────────────────
+      GoRoute(
+        path: AppRoutes.profile,
+        name: 'profile',
+        builder: (context, state) => const ProfileScreen(),
       ),
     ],
 

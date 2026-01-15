@@ -49,6 +49,11 @@ class AuthRepositoryImpl implements AuthRepository {
         throw Exception('Error al registrar usuario');
       }
 
+      // Si no hay sesión, significa que requiere verificación de email
+      if (response.session == null) {
+        throw Exception('EMAIL_VERIFICATION_REQUIRED');
+      }
+
       return _mapUser(response.user!);
     } on AuthException catch (e) {
       throw Exception(_mapAuthError(e.message));

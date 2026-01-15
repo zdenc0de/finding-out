@@ -49,10 +49,33 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     final authState = ref.watch(authNotifierProvider);
     final isLoading = authState.status == AuthStatus.loading;
 
-    // Escuchamos errores de autenticación para mostrar SnackBar
-    // NOTA: Ya no necesitamos escuchar AuthStatus.authenticated
-    // porque GoRouter redirige automáticamente a /home
+    // Escuchamos cambios de autenticación
     ref.listen<AuthState>(authNotifierProvider, (previous, next) {
+      // Verificación de email pendiente - mostrar diálogo y redirigir
+      if (next.status == AuthStatus.pendingVerification) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => AlertDialog(
+            title: const Text('Verifica tu email'),
+            content: const Text(
+              'Te hemos enviado un correo de confirmación. '
+              'Por favor, revisa tu bandeja de entrada y haz clic en el enlace para activar tu cuenta.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  context.go(AppRoutes.login);
+                },
+                child: const Text('Ir a iniciar sesión'),
+              ),
+            ],
+          ),
+        );
+        return;
+      }
+      // Error de autenticación
       if (next.status == AuthStatus.error && next.errorMessage != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

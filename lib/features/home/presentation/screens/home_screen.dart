@@ -3,7 +3,9 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../../core/config/router_config.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 
 /// HomeScreen: Pantalla principal de la aplicación
@@ -46,42 +48,56 @@ class HomeScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Tarjeta de bienvenida - El tema maneja elevation y shape
+              // Tarjeta de bienvenida - Navega al perfil al hacer tap
               Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: Column(
-                    children: [
-                      // Avatar del usuario - Usa colores del tema
-                      CircleAvatar(
-                        radius: 40,
-                        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                        child: Text(
-                          _getInitials(user?.displayName ?? user?.email ?? '?'),
-                          style: TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(context).colorScheme.primary,
+                clipBehavior: Clip.antiAlias,
+                child: InkWell(
+                  onTap: () => context.go(AppRoutes.profile),
+                  child: Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Column(
+                      children: [
+                        // Avatar del usuario - Usa colores del tema
+                        CircleAvatar(
+                          radius: 40,
+                          backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                          child: Text(
+                            _getInitials(user?.displayName ?? user?.email ?? '?'),
+                            style: TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 16),
-                      // Saludo
-                      Text(
-                        '¡Hola, ${user?.displayName ?? 'Usuario'}!',
-                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                              fontWeight: FontWeight.bold,
+                        const SizedBox(height: 16),
+                        // Saludo
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              '¡Hola, ${user?.displayName ?? 'Usuario'}!',
+                              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
                             ),
-                      ),
-                      const SizedBox(height: 4),
-                      // Email - Usa color secundario de texto del tema
-                      Text(
-                        user?.email ?? '',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            const SizedBox(width: 4),
+                            Icon(
+                              Icons.chevron_right,
                               color: Theme.of(context).colorScheme.onSurfaceVariant,
                             ),
-                      ),
-                    ],
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        // Email - Usa color secundario de texto del tema
+                        Text(
+                          user?.email ?? '',
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
