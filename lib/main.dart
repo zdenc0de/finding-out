@@ -1,68 +1,53 @@
+// lib/main.dart
+// Punto de entrada de la aplicación Finding Out
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'core/config/router_config.dart';
 import 'core/config/supabase_config.dart';
-import 'features/auth/presentation/providers/auth_provider.dart';
-import 'features/auth/presentation/screens/login_screen.dart';
+import 'core/theme/app_theme.dart';
 
 void main() async {
+  // Aseguramos que los bindings de Flutter estén inicializados
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Inicializamos Supabase antes de correr la app
   await SupabaseConfig.initialize();
+
+  // Ejecutamos la app envuelta en ProviderScope para Riverpod
   runApp(const ProviderScope(child: MyApp()));
 }
 
+/// Widget raíz de la aplicación
+///
+/// Usa [ConsumerWidget] para acceder al [routerProvider] de GoRouter.
+/// El router maneja toda la navegación y protección de rutas.
 class MyApp extends ConsumerWidget {
   const MyApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return MaterialApp(
+    // Obtenemos la instancia de GoRouter del provider
+    final router = ref.watch(routerProvider);
+
+    // ─────────────────────────────────────────────────────────────────
+    // MaterialApp.router: Versión de MaterialApp para usar con GoRouter
+    //
+    // Diferencias con MaterialApp normal:
+    // - No usa 'home:' ni 'routes:'
+    // - Usa 'routerConfig:' para delegar toda la navegación a GoRouter
+    // ─────────────────────────────────────────────────────────────────
+    return MaterialApp.router(
+      // Configuración básica
       title: 'Finding Out',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
-      home: const AuthWrapper(),
+
+      // Tema centralizado desde AppTheme
+      theme: AppTheme.light,
+
+      // GoRouter maneja toda la navegación
+      routerConfig: router,
     );
-  }
-}
-
-class AuthWrapper extends ConsumerWidget {
-  const AuthWrapper({super.key});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final authState = ref.watch(authNotifierProvider);
-
-    switch (authState.status) {
-      case AuthStatus.initial:
-      case AuthStatus.loading:
-        return const Scaffold(
-          body: Center(child: CircularProgressIndicator()),
-        );
-      case AuthStatus.authenticated:
-        return Scaffold(
-          appBar: AppBar(title: const Text('Finding Out')),
-          body: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text('Bienvenido, ${authState.user?.email ?? ""}'),
-                const SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: () {
-                    ref.read(authNotifierProvider.notifier).signOut();
-                  },
-                  child: const Text('Cerrar sesión'),
-                ),
-              ],
-            ),
-          ),
-        );
-      case AuthStatus.unauthenticated:
-      case AuthStatus.error:
-        return const LoginScreen();
-    }
   }
 }

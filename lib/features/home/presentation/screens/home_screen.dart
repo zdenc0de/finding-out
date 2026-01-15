@@ -1,0 +1,164 @@
+// lib/features/home/presentation/screens/home_screen.dart
+// Pantalla principal después del login
+
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../auth/presentation/providers/auth_provider.dart';
+
+/// HomeScreen: Pantalla principal de la aplicación
+///
+/// Esta pantalla se muestra solo cuando el usuario está autenticado.
+/// El redirect de GoRouter se encarga de proteger esta ruta.
+class HomeScreen extends ConsumerWidget {
+  const HomeScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Obtenemos el estado de autenticación para mostrar datos del usuario
+    final authState = ref.watch(authNotifierProvider);
+    final user = authState.user;
+
+    return Scaffold(
+      // ─────────────────────────────────────────────────────────────────
+      // APP BAR
+      // ─────────────────────────────────────────────────────────────────
+    
+      appBar: AppBar(
+        title: const Text('Finding Out'),
+        centerTitle: true,
+        actions: [
+          // Botón de cerrar sesión en el AppBar
+          IconButton(
+            icon: const Icon(Icons.logout),
+            tooltip: 'Cerrar sesión',
+            onPressed: () => _showLogoutDialog(context, ref),
+          ),
+        ],
+      ),
+
+      // ─────────────────────────────────────────────────────────────────
+      // BODY: Contenido principal
+      // ─────────────────────────────────────────────────────────────────
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Tarjeta de bienvenida - El tema maneja elevation y shape
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Column(
+                    children: [
+                      // Avatar del usuario - Usa colores del tema
+                      CircleAvatar(
+                        radius: 40,
+                        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                        child: Text(
+                          _getInitials(user?.displayName ?? user?.email ?? '?'),
+                          style: TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      // Saludo
+                      Text(
+                        '¡Hola, ${user?.displayName ?? 'Usuario'}!',
+                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                      ),
+                      const SizedBox(height: 4),
+                      // Email - Usa color secundario de texto del tema
+                      Text(
+                        user?.email ?? '',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // Título de sección
+              Text(
+                'Explora tu ciudad',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+              const SizedBox(height: 16),
+
+              // Placeholder para contenido futuro
+              Expanded(
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.explore_outlined,
+                        size: 80,
+                        color: Theme.of(context).colorScheme.outlineVariant,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Próximamente: Eventos cerca de ti',
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                              color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Obtiene las iniciales del nombre o email del usuario
+  String _getInitials(String name) {
+    if (name.isEmpty) return '?';
+
+    final parts = name.split(' ');
+    if (parts.length >= 2) {
+      return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
+    }
+    return name[0].toUpperCase();
+  }
+
+  /// Muestra un diálogo de confirmación antes de cerrar sesión
+  void _showLogoutDialog(BuildContext context, WidgetRef ref) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Cerrar sesión'),
+        content: const Text('¿Estás seguro de que quieres cerrar sesión?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              ref.read(authNotifierProvider.notifier).signOut();
+              // El redirect de GoRouter se encargará de llevarnos a /login
+            },
+            child: const Text('Cerrar sesión'),
+          ),
+        ],
+      ),
+    );
+  }
+}

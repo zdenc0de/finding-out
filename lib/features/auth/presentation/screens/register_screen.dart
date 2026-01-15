@@ -3,7 +3,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../../core/config/router_config.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../providers/auth_provider.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
@@ -46,23 +49,28 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     final authState = ref.watch(authNotifierProvider);
     final isLoading = authState.status == AuthStatus.loading;
 
+    // Escuchamos errores de autenticación para mostrar SnackBar
+    // NOTA: Ya no necesitamos escuchar AuthStatus.authenticated
+    // porque GoRouter redirige automáticamente a /home
     ref.listen<AuthState>(authNotifierProvider, (previous, next) {
       if (next.status == AuthStatus.error && next.errorMessage != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(next.errorMessage!),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.error,
           ),
         );
         ref.read(authNotifierProvider.notifier).clearError();
-      }
-      if (next.status == AuthStatus.authenticated) {
-        Navigator.pop(context);
       }
     });
 
     return Scaffold(
       appBar: AppBar(
+        // Botón de retroceso usando GoRouter
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.go(AppRoutes.login),
+        ),
         title: const Text('Crear cuenta'),
       ),
       body: SafeArea(
@@ -75,12 +83,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Icon(
+                  // Icono - Usa color primario del tema
+                  Icon(
                     Icons.person_add,
                     size: 60,
-                    color: Colors.deepPurple,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
                   const SizedBox(height: 24),
+                  // Nombre - El tema maneja los estilos del input
                   TextFormField(
                     controller: _nameController,
                     textInputAction: TextInputAction.next,
@@ -88,7 +98,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     decoration: const InputDecoration(
                       labelText: 'Nombre',
                       prefixIcon: Icon(Icons.person_outlined),
-                      border: OutlineInputBorder(),
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -98,6 +107,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     },
                   ),
                   const SizedBox(height: 16),
+                  // Email
                   TextFormField(
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
@@ -105,7 +115,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     decoration: const InputDecoration(
                       labelText: 'Email',
                       prefixIcon: Icon(Icons.email_outlined),
-                      border: OutlineInputBorder(),
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -118,6 +127,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     },
                   ),
                   const SizedBox(height: 16),
+                  // Contraseña
                   TextFormField(
                     controller: _passwordController,
                     obscureText: _obscurePassword,
@@ -125,7 +135,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     decoration: InputDecoration(
                       labelText: 'Contraseña',
                       prefixIcon: const Icon(Icons.lock_outlined),
-                      border: const OutlineInputBorder(),
                       suffixIcon: IconButton(
                         icon: Icon(
                           _obscurePassword
@@ -150,6 +159,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     },
                   ),
                   const SizedBox(height: 16),
+                  // Confirmar contraseña
                   TextFormField(
                     controller: _confirmPasswordController,
                     obscureText: _obscureConfirmPassword,
@@ -158,7 +168,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     decoration: InputDecoration(
                       labelText: 'Confirmar contraseña',
                       prefixIcon: const Icon(Icons.lock_outlined),
-                      border: const OutlineInputBorder(),
                       suffixIcon: IconButton(
                         icon: Icon(
                           _obscureConfirmPassword
@@ -183,27 +192,21 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     },
                   ),
                   const SizedBox(height: 24),
+                  // Botón principal - El tema maneja todos los estilos
                   SizedBox(
                     height: 50,
                     child: ElevatedButton(
                       onPressed: isLoading ? null : _handleRegister,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.deepPurple,
-                        foregroundColor: Colors.white,
-                      ),
                       child: isLoading
-                          ? const SizedBox(
+                          ? SizedBox(
                               height: 20,
                               width: 20,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                color: Colors.white,
+                                color: Theme.of(context).colorScheme.onPrimary,
                               ),
                             )
-                          : const Text(
-                              'Crear cuenta',
-                              style: TextStyle(fontSize: 16),
-                            ),
+                          : const Text('Crear cuenta'),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -212,7 +215,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     children: [
                       const Text('¿Ya tienes cuenta?'),
                       TextButton(
-                        onPressed: () => Navigator.pop(context),
+                        // Navegamos a /login usando GoRouter
+                        onPressed: () => context.go(AppRoutes.login),
                         child: const Text('Inicia sesión'),
                       ),
                     ],
