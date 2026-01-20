@@ -8,11 +8,13 @@ import 'package:go_router/go_router.dart';
 import '../../features/auth/presentation/providers/auth_provider.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/register_screen.dart';
+import '../../features/auth/presentation/screens/splash_screen.dart';
 import '../../features/home/presentation/screens/home_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
 
 /// Nombres de las rutas para evitar errores de tipeo
 abstract class AppRoutes {
+  static const String splash = '/';
   static const String login = '/login';
   static const String register = '/register';
   static const String home = '/home';
@@ -28,13 +30,23 @@ final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authNotifierProvider);
 
   return GoRouter(
-    // Ruta inicial: siempre empezamos en /login, el redirect decidirá
-    initialLocation: AppRoutes.login,
+    // Ruta inicial: empezamos en splash mientras verificamos auth
+    initialLocation: AppRoutes.splash,
 
     // debugLogDiagnostics: true, // Descomentar para debug
 
     // Lista de rutas de la aplicación
     routes: [
+      // ─────────────────────────────────────────────────────────────────
+      // RUTA: / (splash)
+      // Pantalla de carga inicial mientras se verifica autenticación
+      // ─────────────────────────────────────────────────────────────────
+      GoRoute(
+        path: AppRoutes.splash,
+        name: 'splash',
+        builder: (context, state) => const SplashScreen(),
+      ),
+
       // ─────────────────────────────────────────────────────────────────
       // RUTA: /login
       // Pantalla de inicio de sesión
@@ -95,13 +107,21 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Rutas que NO requieren autenticación
       final isAuthRoute = currentLocation == AppRoutes.login ||
           currentLocation == AppRoutes.register;
+      final isSplash = currentLocation == AppRoutes.splash;
 
       // ─────────────────────────────────────────────────────────────────
       // CASO 1: Estado de carga inicial
-      // No redirigimos mientras se verifica la sesión
+      // Mostrar splash mientras se verifica la sesión
       // ─────────────────────────────────────────────────────────────────
       if (isLoading) {
-        return null; // Sin redirect, GoRouter mostrará la ruta actual
+        return isSplash ? null : AppRoutes.splash;
+      }
+
+      // ─────────────────────────────────────────────────────────────────
+      // CASO 1.5: Ya terminó la carga, salir del splash
+      // ─────────────────────────────────────────────────────────────────
+      if (isSplash) {
+        return isAuthenticated ? AppRoutes.home : AppRoutes.login;
       }
 
       // ─────────────────────────────────────────────────────────────────

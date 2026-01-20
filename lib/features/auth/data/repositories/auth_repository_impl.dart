@@ -1,13 +1,14 @@
 // lib/features/auth/data/repositories/auth_repository_impl.dart
 // Implementación del repositorio de autenticación
 
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 
+import '../../../../core/errors/exceptions.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/repositories/auth_repository.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
-  final SupabaseClient _client;
+  final supabase.SupabaseClient _client;
 
   AuthRepositoryImpl(this._client);
 
@@ -23,12 +24,16 @@ class AuthRepositoryImpl implements AuthRepository {
       );
 
       if (response.user == null) {
-        throw Exception('Error al iniciar sesión');
+        throw const UnknownException('signIn: response.user is null');
       }
 
       return _mapUser(response.user!);
-    } on AuthException catch (e) {
-      throw Exception(_mapAuthError(e.message));
+    } on AppException {
+      rethrow;
+    } on supabase.AuthException catch (e) {
+      throw _mapSupabaseAuthError(e.message);
+    } catch (e) {
+      throw UnknownException(e.toString());
     }
   }
 
@@ -46,23 +51,31 @@ class AuthRepositoryImpl implements AuthRepository {
       );
 
       if (response.user == null) {
-        throw Exception('Error al registrar usuario');
+        throw const UnknownException('signUp: response.user is null');
       }
 
       // Si no hay sesión, significa que requiere verificación de email
       if (response.session == null) {
-        throw Exception('EMAIL_VERIFICATION_REQUIRED');
+        throw const EmailVerificationRequiredException();
       }
 
       return _mapUser(response.user!);
-    } on AuthException catch (e) {
-      throw Exception(_mapAuthError(e.message));
+    } on AppException {
+      rethrow;
+    } on supabase.AuthException catch (e) {
+      throw _mapSupabaseAuthError(e.message);
+    } catch (e) {
+      throw UnknownException(e.toString());
     }
   }
 
   @override
   Future<void> signOut() async {
-    await _client.auth.signOut();
+    try {
+      await _client.auth.signOut();
+    } catch (e) {
+      throw UnknownException(e.toString());
+    }
   }
 
   @override
@@ -79,7 +92,7 @@ class AuthRepositoryImpl implements AuthRepository {
     });
   }
 
-  AppUser _mapUser(User user) {
+  AppUser _mapUser(supabase.User user) {
     return AppUser(
       id: user.id,
       email: user.email ?? '',
@@ -89,25 +102,27 @@ class AuthRepositoryImpl implements AuthRepository {
     );
   }
 
-  String _mapAuthError(String message) {
+  /// Mapea errores de Supabase a excepciones tipadas
+  AuthException _mapSupabaseAuthError(String message) {
     if (message.contains('Invalid login credentials')) {
-      return 'Email o contraseña incorrectos';
+      return InvalidCredentialsException(message);
     }
     if (message.contains('Email not confirmed')) {
-      return 'Debes confirmar tu email antes de iniciar sesión';
+      return EmailNotVerifiedException(message);
     }
     if (message.contains('User already registered')) {
-      return 'Este email ya está registrado';
+      return EmailAlreadyInUseException(message);
     }
     if (message.contains('Password should be at least')) {
-      return 'La contraseña debe tener al menos 6 caracteres';
+      return WeakPasswordException(message);
     }
     if (message.contains('Unable to validate email')) {
-      return 'El formato del email no es válido';
+      return InvalidEmailException(message);
     }
     if (message.contains('Email rate limit exceeded')) {
-      return 'Demasiados intentos. Intenta más tarde';
+      return RateLimitException(message);
     }
-    return message;
+    // Error genérico de autenticación
+    return AuthException('Error de autenticación', message);
   }
 }

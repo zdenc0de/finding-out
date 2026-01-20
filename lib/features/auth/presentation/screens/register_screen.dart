@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/config/router_config.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/validators.dart';
 import '../providers/auth_provider.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
@@ -122,12 +123,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       labelText: 'Nombre',
                       prefixIcon: Icon(Icons.person_outlined),
                     ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Ingresa tu nombre';
-                      }
-                      return null;
-                    },
+                    validator: Validators.validateName,
                   ),
                   const SizedBox(height: 16),
                   // Email
@@ -139,15 +135,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       labelText: 'Email',
                       prefixIcon: Icon(Icons.email_outlined),
                     ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Ingresa tu email';
-                      }
-                      if (!value.contains('@')) {
-                        return 'Ingresa un email válido';
-                      }
-                      return null;
-                    },
+                    validator: Validators.validateEmail,
                   ),
                   const SizedBox(height: 16),
                   // Contraseña
@@ -171,15 +159,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         },
                       ),
                     ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Ingresa una contraseña';
-                      }
-                      if (value.length < 6) {
-                        return 'Mínimo 6 caracteres';
-                      }
-                      return null;
-                    },
+                    validator: Validators.validateNewPassword,
                   ),
                   const SizedBox(height: 16),
                   // Confirmar contraseña
@@ -204,15 +184,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         },
                       ),
                     ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Confirma tu contraseña';
-                      }
-                      if (value != _passwordController.text) {
-                        return 'Las contraseñas no coinciden';
-                      }
-                      return null;
-                    },
+                    validator: (value) => Validators.validateConfirmPassword(
+                      value,
+                      _passwordController.text,
+                    ),
                   ),
                   const SizedBox(height: 24),
                   // Botón principal - El tema maneja todos los estilos

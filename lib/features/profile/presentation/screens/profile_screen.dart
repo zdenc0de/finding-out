@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/config/router_config.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/string_utils.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 
 class ProfileScreen extends ConsumerWidget {
@@ -53,14 +54,16 @@ class ProfileScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 16),
               Text(
-                user?.displayName ?? 'Usuario',
+                StringUtils.sanitizeForDisplay(user?.displayName, maxLength: 30).isNotEmpty
+                    ? StringUtils.sanitizeForDisplay(user?.displayName, maxLength: 30)
+                    : 'Usuario',
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
               ),
               const SizedBox(height: 4),
               Text(
-                user?.email ?? '',
+                StringUtils.sanitizeForDisplay(user?.email, maxLength: 50),
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
@@ -207,14 +210,7 @@ class ProfileScreen extends ConsumerWidget {
     );
   }
 
-  String _getInitials(String name) {
-    if (name.isEmpty) return '?';
-    final parts = name.split(' ');
-    if (parts.length >= 2) {
-      return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
-    }
-    return name[0].toUpperCase();
-  }
+  String _getInitials(String? name) => StringUtils.getInitials(name);
 
   String _formatDate(DateTime? date) {
     if (date == null) return '-';

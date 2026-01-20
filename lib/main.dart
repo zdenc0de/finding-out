@@ -2,6 +2,7 @@
 // Punto de entrada de la aplicación Finding Out
 
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/config/router_config.dart';
@@ -11,6 +12,9 @@ import 'core/theme/app_theme.dart';
 void main() async {
   // Aseguramos que los bindings de Flutter estén inicializados
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Cargamos las variables de entorno
+  await dotenv.load(fileName: '.env');
 
   // Inicializamos Supabase antes de correr la app
   await SupabaseConfig.initialize();

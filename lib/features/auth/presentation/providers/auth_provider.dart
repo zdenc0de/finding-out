@@ -4,6 +4,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/config/supabase_config.dart';
+import '../../../../core/errors/exceptions.dart';
 import '../../data/repositories/auth_repository_impl.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/repositories/auth_repository.dart';
@@ -84,10 +85,15 @@ class AuthNotifier extends StateNotifier<AuthState> {
     try {
       final user = await _repository.signIn(email: email, password: password);
       state = AuthState(status: AuthStatus.authenticated, user: user);
-    } catch (e) {
+    } on AppException catch (e) {
       state = AuthState(
         status: AuthStatus.error,
-        errorMessage: e.toString(),
+        errorMessage: e.userMessage,
+      );
+    } catch (e) {
+      state = const AuthState(
+        status: AuthStatus.error,
+        errorMessage: 'Ha ocurrido un error inesperado',
       );
     }
   }
@@ -106,15 +112,17 @@ class AuthNotifier extends StateNotifier<AuthState> {
         displayName: displayName,
       );
       state = AuthState(status: AuthStatus.authenticated, user: user);
-    } catch (e) {
-      // Verificación de email requerida (registro exitoso)
-      if (e.toString().contains('EMAIL_VERIFICATION_REQUIRED')) {
-        state = const AuthState(status: AuthStatus.pendingVerification);
-        return;
-      }
+    } on EmailVerificationRequiredException {
+      state = const AuthState(status: AuthStatus.pendingVerification);
+    } on AppException catch (e) {
       state = AuthState(
         status: AuthStatus.error,
-        errorMessage: e.toString(),
+        errorMessage: e.userMessage,
+      );
+    } catch (e) {
+      state = const AuthState(
+        status: AuthStatus.error,
+        errorMessage: 'Ha ocurrido un error inesperado',
       );
     }
   }
@@ -125,10 +133,15 @@ class AuthNotifier extends StateNotifier<AuthState> {
     try {
       await _repository.signOut();
       state = const AuthState(status: AuthStatus.unauthenticated);
-    } catch (e) {
+    } on AppException catch (e) {
       state = AuthState(
         status: AuthStatus.error,
-        errorMessage: e.toString(),
+        errorMessage: e.userMessage,
+      );
+    } catch (e) {
+      state = const AuthState(
+        status: AuthStatus.error,
+        errorMessage: 'Ha ocurrido un error inesperado',
       );
     }
   }

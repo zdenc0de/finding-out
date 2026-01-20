@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/config/router_config.dart';
+import '../../../../core/utils/string_utils.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 
 /// HomeScreen: Pantalla principal de la aplicación
@@ -76,7 +77,7 @@ class HomeScreen extends ConsumerWidget {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text(
-                              '¡Hola, ${user?.displayName ?? 'Usuario'}!',
+                              '¡Hola, ${StringUtils.sanitizeForDisplay(user?.displayName, maxLength: 30).isNotEmpty ? StringUtils.sanitizeForDisplay(user?.displayName, maxLength: 30) : 'Usuario'}!',
                               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -91,7 +92,7 @@ class HomeScreen extends ConsumerWidget {
                         const SizedBox(height: 4),
                         // Email - Usa color secundario de texto del tema
                         Text(
-                          user?.email ?? '',
+                          StringUtils.sanitizeForDisplay(user?.email, maxLength: 50),
                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                 color: Theme.of(context).colorScheme.onSurfaceVariant,
                               ),
@@ -143,15 +144,7 @@ class HomeScreen extends ConsumerWidget {
   }
 
   /// Obtiene las iniciales del nombre o email del usuario
-  String _getInitials(String name) {
-    if (name.isEmpty) return '?';
-
-    final parts = name.split(' ');
-    if (parts.length >= 2) {
-      return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
-    }
-    return name[0].toUpperCase();
-  }
+  String _getInitials(String? name) => StringUtils.getInitials(name);
 
   /// Muestra un diálogo de confirmación antes de cerrar sesión
   void _showLogoutDialog(BuildContext context, WidgetRef ref) {
