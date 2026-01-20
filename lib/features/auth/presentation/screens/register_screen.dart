@@ -45,6 +45,104 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     }
   }
 
+  void _showRegistrationSuccessDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        icon: const Icon(
+          Icons.check_circle,
+          color: AppColors.success,
+          size: 48,
+        ),
+        title: const Text('¡Cuenta creada!'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Te hemos enviado un email de verificación a:',
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              _emailController.text.trim(),
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'Verifica tu email para poder iniciar sesión.',
+              style: TextStyle(fontSize: 12),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              context.go('${AppRoutes.verifyEmail}?email=${Uri.encodeComponent(_emailController.text.trim())}');
+            },
+            child: const Text('Continuar'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showEmailAlreadyExistsDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        icon: const Icon(
+          Icons.person,
+          color: AppColors.warning,
+          size: 48,
+        ),
+        title: const Text('Email ya registrado'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Ya existe una cuenta con este email:',
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              _emailController.text.trim(),
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              '¿Quieres iniciar sesión?',
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              context.go(AppRoutes.login);
+            },
+            child: const Text('Ir a login'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authNotifierProvider);
@@ -52,19 +150,24 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
     // Escuchamos cambios de autenticación
     ref.listen<AuthState>(authNotifierProvider, (previous, next) {
-      // Verificación de email pendiente - redirigir a pantalla de verificación
+      // Verificación de email pendiente - mostrar diálogo de éxito
       if (next.status == AuthStatus.pendingVerification) {
-        context.go(AppRoutes.verifyEmail);
+        _showRegistrationSuccessDialog();
         return;
       }
       // Error de autenticación
       if (next.status == AuthStatus.error && next.errorMessage != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(next.errorMessage!),
-            backgroundColor: AppColors.error,
-          ),
-        );
+        // Caso especial: email ya registrado
+        if (next.errorMessage!.contains('ya está registrado')) {
+          _showEmailAlreadyExistsDialog();
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(next.errorMessage!),
+              backgroundColor: AppColors.error,
+            ),
+          );
+        }
         ref.read(authNotifierProvider.notifier).clearError();
       }
     });

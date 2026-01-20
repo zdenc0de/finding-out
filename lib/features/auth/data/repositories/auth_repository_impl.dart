@@ -187,25 +187,62 @@ class AuthRepositoryImpl implements AuthRepository {
 
   /// Mapea errores de Supabase a excepciones tipadas
   AuthException _mapSupabaseAuthError(String message) {
-    if (message.contains('Invalid login credentials')) {
+    final lowerMessage = message.toLowerCase();
+
+    // Credenciales inválidas (email o contraseña incorrectos)
+    if (lowerMessage.contains('invalid login credentials') ||
+        lowerMessage.contains('invalid credentials')) {
       return InvalidCredentialsException(message);
     }
-    if (message.contains('Email not confirmed')) {
+
+    // Email no confirmado/verificado
+    if (lowerMessage.contains('email not confirmed') ||
+        lowerMessage.contains('email not verified')) {
       return EmailNotVerifiedException(message);
     }
-    if (message.contains('User already registered')) {
+
+    // Usuario ya registrado
+    if (lowerMessage.contains('user already registered') ||
+        lowerMessage.contains('already been registered')) {
       return EmailAlreadyInUseException(message);
     }
-    if (message.contains('Password should be at least')) {
+
+    // Contraseña débil
+    if (lowerMessage.contains('password should be at least') ||
+        lowerMessage.contains('password is too weak') ||
+        lowerMessage.contains('weak password')) {
       return WeakPasswordException(message);
     }
-    if (message.contains('Unable to validate email')) {
+
+    // Email inválido
+    if (lowerMessage.contains('unable to validate email') ||
+        lowerMessage.contains('invalid email')) {
       return InvalidEmailException(message);
     }
-    if (message.contains('Email rate limit exceeded')) {
+
+    // Límite de intentos excedido
+    if (lowerMessage.contains('rate limit') ||
+        lowerMessage.contains('too many requests') ||
+        lowerMessage.contains('email rate limit exceeded')) {
       return RateLimitException(message);
     }
+
+    // Error de red/conexión
+    if (lowerMessage.contains('network') ||
+        lowerMessage.contains('connection') ||
+        lowerMessage.contains('socket') ||
+        lowerMessage.contains('timeout')) {
+      return NetworkException(message);
+    }
+
+    // Sesión expirada
+    if (lowerMessage.contains('session expired') ||
+        lowerMessage.contains('refresh token') ||
+        lowerMessage.contains('jwt expired')) {
+      return const AuthException('Tu sesión ha expirado. Inicia sesión nuevamente');
+    }
+
     // Error genérico de autenticación
-    return AuthException('Error de autenticación', message);
+    return AuthException('Error de autenticación: $message', message);
   }
 }

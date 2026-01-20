@@ -81,7 +81,7 @@ class UserNotFoundException extends AuthException {
 }
 
 /// Excepción de red/conexión
-class NetworkException extends AppException {
+class NetworkException extends AuthException {
   const NetworkException([String? debugInfo])
       : super('Error de conexión. Verifica tu internet', debugInfo);
 }

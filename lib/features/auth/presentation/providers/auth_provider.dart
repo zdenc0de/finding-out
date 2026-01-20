@@ -41,11 +41,12 @@ enum AuthStatus {
   loading,
   authenticated,
   unauthenticated,
-  pendingVerification,
-  passwordResetSent,   // Email de recuperación enviado
-  passwordRecoveryMode, // Usuario llegó desde el deep link de recovery
-  passwordUpdated,     // Contraseña actualizada exitosamente
-  profileUpdated,      // Perfil actualizado exitosamente
+  pendingVerification,   // Registro exitoso, esperando verificación
+  emailNotVerified,      // Intento de login con email no verificado
+  passwordResetSent,     // Email de recuperación enviado
+  passwordRecoveryMode,  // Usuario llegó desde el deep link de recovery
+  passwordUpdated,       // Contraseña actualizada exitosamente
+  profileUpdated,        // Perfil actualizado exitosamente
   error,
 }
 
@@ -131,6 +132,13 @@ class AuthNotifier extends StateNotifier<AuthState> {
     try {
       final user = await _repository.signIn(email: email, password: password);
       state = AuthState(status: AuthStatus.authenticated, user: user);
+    } on EmailNotVerifiedException catch (e) {
+      // Caso especial: email no verificado
+      state = AuthState(
+        status: AuthStatus.emailNotVerified,
+        errorMessage: e.userMessage,
+        pendingEmail: email,
+      );
     } on AppException catch (e) {
       state = AuthState(
         status: AuthStatus.error,

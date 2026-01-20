@@ -39,12 +39,75 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
   }
 
+  void _showEmailNotVerifiedDialog(String email) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        icon: const Icon(
+          Icons.mark_email_unread,
+          color: AppColors.warning,
+          size: 48,
+        ),
+        title: const Text('Email no verificado'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Debes verificar tu email antes de iniciar sesión.',
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              email,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Revisa tu bandeja de entrada o la carpeta de spam.',
+              style: TextStyle(fontSize: 12),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              ref.read(authNotifierProvider.notifier).clearError();
+            },
+            child: const Text('Cerrar'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              ref.read(authNotifierProvider.notifier).clearError();
+              // Ir a la pantalla de verificación con el email
+              context.go('${AppRoutes.verifyEmail}?email=${Uri.encodeComponent(email)}');
+            },
+            child: const Text('Verificar email'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authNotifierProvider);
     final isLoading = authState.status == AuthStatus.loading;
 
     ref.listen<AuthState>(authNotifierProvider, (previous, next) {
+      // Caso especial: email no verificado - mostrar diálogo
+      if (next.status == AuthStatus.emailNotVerified) {
+        _showEmailNotVerifiedDialog(next.pendingEmail ?? '');
+        return;
+      }
+
+      // Error general - mostrar snackbar
       if (next.status == AuthStatus.error && next.errorMessage != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

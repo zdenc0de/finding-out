@@ -23,13 +23,10 @@ class Validators {
     return null;
   }
 
-  /// Valida una contraseña para login (requisitos mínimos)
+  /// Valida una contraseña para login (solo verifica que no esté vacío)
   static String? validateLoginPassword(String? value) {
     if (value == null || value.isEmpty) {
       return 'Ingresa tu contraseña';
-    }
-    if (value.length < 6) {
-      return 'La contraseña debe tener al menos 6 caracteres';
     }
     return null;
   }
