@@ -3,6 +3,7 @@
 
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 
+import '../../../../core/config/supabase_config.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/repositories/auth_repository.dart';
@@ -73,6 +74,88 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<void> signOut() async {
     try {
       await _client.auth.signOut();
+    } catch (e) {
+      throw UnknownException(e.toString());
+    }
+  }
+
+  @override
+  Future<void> resetPassword(String email) async {
+    try {
+      await _client.auth.resetPasswordForEmail(
+        email,
+        redirectTo: SupabaseConfig.redirectUrl,
+      );
+    } on supabase.AuthException catch (e) {
+      throw _mapSupabaseAuthError(e.message);
+    } catch (e) {
+      throw UnknownException(e.toString());
+    }
+  }
+
+  @override
+  Future<void> resendVerificationEmail(String email) async {
+    try {
+      await _client.auth.resend(
+        type: supabase.OtpType.signup,
+        email: email,
+      );
+    } on supabase.AuthException catch (e) {
+      throw _mapSupabaseAuthError(e.message);
+    } catch (e) {
+      throw UnknownException(e.toString());
+    }
+  }
+
+  @override
+  Future<void> updatePassword(String newPassword) async {
+    try {
+      await _client.auth.updateUser(
+        supabase.UserAttributes(password: newPassword),
+      );
+    } on supabase.AuthException catch (e) {
+      throw _mapSupabaseAuthError(e.message);
+    } catch (e) {
+      throw UnknownException(e.toString());
+    }
+  }
+
+  @override
+  Future<AppUser> updateProfile({
+    String? displayName,
+    String? avatarUrl,
+  }) async {
+    try {
+      final currentUser = _client.auth.currentUser;
+      if (currentUser == null) {
+        throw const AuthException('No hay usuario autenticado');
+      }
+
+      // Construir el mapa de datos a actualizar
+      final Map<String, dynamic> data = {
+        ...?currentUser.userMetadata,
+      };
+
+      if (displayName != null) {
+        data['display_name'] = displayName;
+      }
+      if (avatarUrl != null) {
+        data['avatar_url'] = avatarUrl;
+      }
+
+      final response = await _client.auth.updateUser(
+        supabase.UserAttributes(data: data),
+      );
+
+      if (response.user == null) {
+        throw const UnknownException('updateProfile: response.user is null');
+      }
+
+      return _mapUser(response.user!);
+    } on AppException {
+      rethrow;
+    } on supabase.AuthException catch (e) {
+      throw _mapSupabaseAuthError(e.message);
     } catch (e) {
       throw UnknownException(e.toString());
     }

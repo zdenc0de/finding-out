@@ -72,4 +72,34 @@ class Validators {
     }
     return null;
   }
+
+  /// Valida que un nombre no esté vacío (opcional - permite vacío)
+  static String? validateDisplayName(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return null; // Permitimos que esté vacío
+    }
+    if (value.trim().length < 2) {
+      return 'El nombre debe tener al menos 2 caracteres';
+    }
+    if (value.trim().length > 50) {
+      return 'El nombre no puede tener más de 50 caracteres';
+    }
+    return null;
+  }
+
+  /// Valida una URL (opcional - permite vacío)
+  static String? validateUrl(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return null; // Permitimos que esté vacío
+    }
+    final trimmed = value.trim();
+    final uri = Uri.tryParse(trimmed);
+    if (uri == null || !uri.hasScheme || !uri.hasAuthority) {
+      return 'Ingresa una URL válida';
+    }
+    if (!trimmed.startsWith('http://') && !trimmed.startsWith('https://')) {
+      return 'La URL debe empezar con http:// o https://';
+    }
+    return null;
+  }
 }

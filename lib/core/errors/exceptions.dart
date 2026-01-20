@@ -62,6 +62,24 @@ class EmailVerificationRequiredException extends AuthException {
       : super('Se requiere verificación de email', debugInfo);
 }
 
+/// Error al enviar email de restablecimiento de contraseña
+class PasswordResetException extends AuthException {
+  const PasswordResetException([String? debugInfo])
+      : super('No se pudo enviar el email de recuperación', debugInfo);
+}
+
+/// Error al actualizar perfil
+class ProfileUpdateException extends AuthException {
+  const ProfileUpdateException([String? debugInfo])
+      : super('No se pudo actualizar el perfil', debugInfo);
+}
+
+/// Usuario no encontrado
+class UserNotFoundException extends AuthException {
+  const UserNotFoundException([String? debugInfo])
+      : super('No existe una cuenta con este email', debugInfo);
+}
+
 /// Excepción de red/conexión
 class NetworkException extends AppException {
   const NetworkException([String? debugInfo])

@@ -17,6 +17,21 @@ abstract class AuthRepository {
 
   Future<void> signOut();
 
+  /// Envía un email para restablecer la contraseña
+  Future<void> resetPassword(String email);
+
+  /// Reenvía el email de verificación
+  Future<void> resendVerificationEmail(String email);
+
+  /// Actualiza la contraseña del usuario (después de reset)
+  Future<void> updatePassword(String newPassword);
+
+  /// Actualiza el perfil del usuario (nombre, avatar)
+  Future<AppUser> updateProfile({
+    String? displayName,
+    String? avatarUrl,
+  });
+
   AppUser? getCurrentUser();
 
   Stream<AppUser?> get authStateChanges;

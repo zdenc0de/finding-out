@@ -6,10 +6,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/auth/presentation/providers/auth_provider.dart';
+import '../../features/auth/presentation/screens/email_verification_screen.dart';
+import '../../features/auth/presentation/screens/forgot_password_screen.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/register_screen.dart';
+import '../../features/auth/presentation/screens/reset_password_screen.dart';
 import '../../features/auth/presentation/screens/splash_screen.dart';
 import '../../features/home/presentation/screens/home_screen.dart';
+import '../../features/profile/presentation/screens/edit_profile_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
 
 /// Nombres de las rutas para evitar errores de tipeo
@@ -17,8 +21,12 @@ abstract class AppRoutes {
   static const String splash = '/';
   static const String login = '/login';
   static const String register = '/register';
+  static const String forgotPassword = '/forgot-password';
+  static const String verifyEmail = '/verify-email';
+  static const String resetPassword = '/reset-password';
   static const String home = '/home';
   static const String profile = '/profile';
+  static const String editProfile = '/profile/edit';
 }
 
 /// Provider de GoRouter que escucha cambios de autenticación
@@ -68,6 +76,40 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
 
       // ─────────────────────────────────────────────────────────────────
+      // RUTA: /forgot-password
+      // Pantalla de recuperación de contraseña
+      // ─────────────────────────────────────────────────────────────────
+      GoRoute(
+        path: AppRoutes.forgotPassword,
+        name: 'forgotPassword',
+        builder: (context, state) => const ForgotPasswordScreen(),
+      ),
+
+      // ─────────────────────────────────────────────────────────────────
+      // RUTA: /verify-email
+      // Pantalla de verificación de email
+      // ─────────────────────────────────────────────────────────────────
+      GoRoute(
+        path: AppRoutes.verifyEmail,
+        name: 'verifyEmail',
+        builder: (context, state) {
+          // Obtener email de los query params o del estado
+          final email = state.uri.queryParameters['email'];
+          return EmailVerificationScreen(email: email);
+        },
+      ),
+
+      // ─────────────────────────────────────────────────────────────────
+      // RUTA: /reset-password
+      // Pantalla para establecer nueva contraseña (después del deep link)
+      // ─────────────────────────────────────────────────────────────────
+      GoRoute(
+        path: AppRoutes.resetPassword,
+        name: 'resetPassword',
+        builder: (context, state) => const ResetPasswordScreen(),
+      ),
+
+      // ─────────────────────────────────────────────────────────────────
       // RUTA: /home
       // Pantalla principal (requiere autenticación)
       // ─────────────────────────────────────────────────────────────────
@@ -86,6 +128,16 @@ final routerProvider = Provider<GoRouter>((ref) {
         name: 'profile',
         builder: (context, state) => const ProfileScreen(),
       ),
+
+      // ─────────────────────────────────────────────────────────────────
+      // RUTA: /profile/edit
+      // Pantalla de edición de perfil (requiere autenticación)
+      // ─────────────────────────────────────────────────────────────────
+      GoRoute(
+        path: AppRoutes.editProfile,
+        name: 'editProfile',
+        builder: (context, state) => const EditProfileScreen(),
+      ),
     ],
 
     // ═══════════════════════════════════════════════════════════════════
@@ -100,14 +152,27 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isAuthenticated = authState.status == AuthStatus.authenticated;
       final isLoading = authState.status == AuthStatus.loading ||
           authState.status == AuthStatus.initial;
+      final isPasswordRecovery = authState.status == AuthStatus.passwordRecoveryMode;
 
       // Ruta que el usuario está intentando visitar
       final currentLocation = state.matchedLocation;
 
       // Rutas que NO requieren autenticación
       final isAuthRoute = currentLocation == AppRoutes.login ||
-          currentLocation == AppRoutes.register;
+          currentLocation == AppRoutes.register ||
+          currentLocation == AppRoutes.forgotPassword ||
+          currentLocation == AppRoutes.verifyEmail ||
+          currentLocation == AppRoutes.resetPassword;
       final isSplash = currentLocation == AppRoutes.splash;
+      final isResetPassword = currentLocation == AppRoutes.resetPassword;
+
+      // ─────────────────────────────────────────────────────────────────
+      // CASO 0: Modo de recuperación de contraseña (deep link)
+      // Redirigir a /reset-password
+      // ─────────────────────────────────────────────────────────────────
+      if (isPasswordRecovery && !isResetPassword) {
+        return AppRoutes.resetPassword;
+      }
 
       // ─────────────────────────────────────────────────────────────────
       // CASO 1: Estado de carga inicial
@@ -134,9 +199,9 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       // ─────────────────────────────────────────────────────────────────
       // CASO 3: Usuario autenticado intenta acceder a /login o /register
-      // Redirigir a /home
+      // Redirigir a /home (excepto si está en reset-password)
       // ─────────────────────────────────────────────────────────────────
-      if (isAuthenticated && isAuthRoute) {
+      if (isAuthenticated && isAuthRoute && !isResetPassword) {
         return AppRoutes.home;
       }
 

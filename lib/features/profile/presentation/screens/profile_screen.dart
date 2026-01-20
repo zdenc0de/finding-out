@@ -69,6 +69,17 @@ class ProfileScreen extends ConsumerWidget {
                     ),
               ),
 
+              const SizedBox(height: 16),
+
+              // ─────────────────────────────────────────────────────────────
+              // BOTÓN: Editar perfil
+              // ─────────────────────────────────────────────────────────────
+              OutlinedButton.icon(
+                onPressed: () => context.go(AppRoutes.editProfile),
+                icon: const Icon(Icons.edit_outlined),
+                label: const Text('Editar perfil'),
+              ),
+
               const SizedBox(height: 32),
 
               // ─────────────────────────────────────────────────────────────

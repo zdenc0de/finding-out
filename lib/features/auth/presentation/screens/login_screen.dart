@@ -129,7 +129,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                     validator: Validators.validateLoginPassword,
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 8),
+                  // Link olvidé contraseña
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: () => context.go(AppRoutes.forgotPassword),
+                      child: const Text('¿Olvidaste tu contraseña?'),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
                   // Botón principal - El tema maneja todos los estilos
                   SizedBox(
                     height: 50,

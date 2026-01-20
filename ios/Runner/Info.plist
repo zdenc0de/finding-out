@@ -45,5 +45,19 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<!-- Deep Links para Supabase Auth -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>com.findingout.app</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>findingout</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>

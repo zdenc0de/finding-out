@@ -1,5 +1,5 @@
-// lib/features/auth/presentation/screens/register_screen.dart
-// Pantalla de registro de usuario
+// lib/features/auth/presentation/screens/reset_password_screen.dart
+// Pantalla para establecer nueva contraseña (después de hacer clic en el enlace del email)
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,17 +10,15 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/validators.dart';
 import '../providers/auth_provider.dart';
 
-class RegisterScreen extends ConsumerStatefulWidget {
-  const RegisterScreen({super.key});
+class ResetPasswordScreen extends ConsumerStatefulWidget {
+  const ResetPasswordScreen({super.key});
 
   @override
-  ConsumerState<RegisterScreen> createState() => _RegisterScreenState();
+  ConsumerState<ResetPasswordScreen> createState() => _ResetPasswordScreenState();
 }
 
-class _RegisterScreenState extends ConsumerState<RegisterScreen> {
+class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
-  final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   bool _obscurePassword = true;
@@ -28,21 +26,27 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   @override
   void dispose() {
-    _nameController.dispose();
-    _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
   }
 
-  Future<void> _handleRegister() async {
+  Future<void> _handleUpdatePassword() async {
     if (_formKey.currentState!.validate()) {
-      await ref.read(authNotifierProvider.notifier).signUp(
-            email: _emailController.text.trim(),
-            password: _passwordController.text,
-            displayName: _nameController.text.trim(),
+      await ref.read(authNotifierProvider.notifier).updatePassword(
+            _passwordController.text,
           );
     }
+  }
+
+  String? _validateConfirmPassword(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Confirma tu contraseña';
+    }
+    if (value != _passwordController.text) {
+      return 'Las contraseñas no coinciden';
+    }
+    return null;
   }
 
   @override
@@ -50,15 +54,18 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     final authState = ref.watch(authNotifierProvider);
     final isLoading = authState.status == AuthStatus.loading;
 
-    // Escuchamos cambios de autenticación
+    // Escuchar cambios de estado
     ref.listen<AuthState>(authNotifierProvider, (previous, next) {
-      // Verificación de email pendiente - redirigir a pantalla de verificación
-      if (next.status == AuthStatus.pendingVerification) {
-        context.go(AppRoutes.verifyEmail);
-        return;
-      }
-      // Error de autenticación
-      if (next.status == AuthStatus.error && next.errorMessage != null) {
+      if (next.status == AuthStatus.passwordUpdated) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(next.successMessage ?? 'Contraseña actualizada'),
+            backgroundColor: AppColors.success,
+          ),
+        );
+        // Ir a login después de actualizar la contraseña
+        context.go(AppRoutes.login);
+      } else if (next.status == AuthStatus.error && next.errorMessage != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(next.errorMessage!),
@@ -71,12 +78,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        // Botón de retroceso usando GoRouter
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.go(AppRoutes.login),
-        ),
-        title: const Text('Crear cuenta'),
+        title: const Text('Nueva contraseña'),
       ),
       body: SafeArea(
         child: Center(
@@ -88,44 +90,38 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Icono - Usa color primario del tema
+                  // Icono
                   Icon(
-                    Icons.person_add,
-                    size: 60,
+                    Icons.lock_outline,
+                    size: 80,
                     color: Theme.of(context).colorScheme.primary,
                   ),
                   const SizedBox(height: 24),
-                  // Nombre - El tema maneja los estilos del input
-                  TextFormField(
-                    controller: _nameController,
-                    textInputAction: TextInputAction.next,
-                    textCapitalization: TextCapitalization.words,
-                    decoration: const InputDecoration(
-                      labelText: 'Nombre',
-                      prefixIcon: Icon(Icons.person_outlined),
-                    ),
-                    validator: Validators.validateName,
+                  // Título
+                  Text(
+                    'Crea tu nueva contraseña',
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                    textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 16),
-                  // Email
-                  TextFormField(
-                    controller: _emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    textInputAction: TextInputAction.next,
-                    decoration: const InputDecoration(
-                      labelText: 'Email',
-                      prefixIcon: Icon(Icons.email_outlined),
-                    ),
-                    validator: Validators.validateEmail,
+                  const SizedBox(height: 8),
+                  // Descripción
+                  Text(
+                    'Ingresa una contraseña segura para tu cuenta.',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                    textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 16),
-                  // Contraseña
+                  const SizedBox(height: 32),
+                  // Campo de contraseña
                   TextFormField(
                     controller: _passwordController,
                     obscureText: _obscurePassword,
                     textInputAction: TextInputAction.next,
                     decoration: InputDecoration(
-                      labelText: 'Contraseña',
+                      labelText: 'Nueva contraseña',
                       prefixIcon: const Icon(Icons.lock_outlined),
                       suffixIcon: IconButton(
                         icon: Icon(
@@ -134,21 +130,19 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                               : Icons.visibility_off_outlined,
                         ),
                         onPressed: () {
-                          setState(() {
-                            _obscurePassword = !_obscurePassword;
-                          });
+                          setState(() => _obscurePassword = !_obscurePassword);
                         },
                       ),
                     ),
                     validator: Validators.validateNewPassword,
                   ),
                   const SizedBox(height: 16),
-                  // Confirmar contraseña
+                  // Campo de confirmar contraseña
                   TextFormField(
                     controller: _confirmPasswordController,
                     obscureText: _obscureConfirmPassword,
                     textInputAction: TextInputAction.done,
-                    onFieldSubmitted: (_) => _handleRegister(),
+                    onFieldSubmitted: (_) => _handleUpdatePassword(),
                     decoration: InputDecoration(
                       labelText: 'Confirmar contraseña',
                       prefixIcon: const Icon(Icons.lock_outlined),
@@ -159,23 +153,18 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                               : Icons.visibility_off_outlined,
                         ),
                         onPressed: () {
-                          setState(() {
-                            _obscureConfirmPassword = !_obscureConfirmPassword;
-                          });
+                          setState(() => _obscureConfirmPassword = !_obscureConfirmPassword);
                         },
                       ),
                     ),
-                    validator: (value) => Validators.validateConfirmPassword(
-                      value,
-                      _passwordController.text,
-                    ),
+                    validator: _validateConfirmPassword,
                   ),
                   const SizedBox(height: 24),
-                  // Botón principal - El tema maneja todos los estilos
+                  // Botón de actualizar
                   SizedBox(
                     height: 50,
                     child: ElevatedButton(
-                      onPressed: isLoading ? null : _handleRegister,
+                      onPressed: isLoading ? null : _handleUpdatePassword,
                       child: isLoading
                           ? SizedBox(
                               height: 20,
@@ -185,20 +174,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                 color: Theme.of(context).colorScheme.onPrimary,
                               ),
                             )
-                          : const Text('Crear cuenta'),
+                          : const Text('Actualizar contraseña'),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text('¿Ya tienes cuenta?'),
-                      TextButton(
-                        // Navegamos a /login usando GoRouter
-                        onPressed: () => context.go(AppRoutes.login),
-                        child: const Text('Inicia sesión'),
-                      ),
-                    ],
                   ),
                 ],
               ),

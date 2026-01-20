@@ -1,7 +1,10 @@
 // lib/features/auth/presentation/providers/auth_provider.dart
 // Provider de Riverpod para gestión de autenticación
 
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 
 import '../../../../core/config/supabase_config.dart';
 import '../../../../core/errors/exceptions.dart';
@@ -33,28 +36,47 @@ final isAuthenticatedProvider = Provider<bool>((ref) {
 });
 
 // Estado para el notifier
-enum AuthStatus { initial, loading, authenticated, unauthenticated, pendingVerification, error }
+enum AuthStatus {
+  initial,
+  loading,
+  authenticated,
+  unauthenticated,
+  pendingVerification,
+  passwordResetSent,   // Email de recuperación enviado
+  passwordRecoveryMode, // Usuario llegó desde el deep link de recovery
+  passwordUpdated,     // Contraseña actualizada exitosamente
+  profileUpdated,      // Perfil actualizado exitosamente
+  error,
+}
 
 class AuthState {
   final AuthStatus status;
   final AppUser? user;
   final String? errorMessage;
+  final String? successMessage;
+  final String? pendingEmail; // Email pendiente de verificación
 
   const AuthState({
     this.status = AuthStatus.initial,
     this.user,
     this.errorMessage,
+    this.successMessage,
+    this.pendingEmail,
   });
 
   AuthState copyWith({
     AuthStatus? status,
     AppUser? user,
     String? errorMessage,
+    String? successMessage,
+    String? pendingEmail,
   }) {
     return AuthState(
       status: status ?? this.status,
       user: user ?? this.user,
       errorMessage: errorMessage,
+      successMessage: successMessage,
+      pendingEmail: pendingEmail ?? this.pendingEmail,
     );
   }
 }
@@ -62,9 +84,11 @@ class AuthState {
 // Notifier para acciones de auth
 class AuthNotifier extends StateNotifier<AuthState> {
   final AuthRepository _repository;
+  StreamSubscription<supabase.AuthState>? _authSubscription;
 
   AuthNotifier(this._repository) : super(const AuthState()) {
     _init();
+    _listenToAuthEvents();
   }
 
   void _init() {
@@ -74,6 +98,28 @@ class AuthNotifier extends StateNotifier<AuthState> {
     } else {
       state = const AuthState(status: AuthStatus.unauthenticated);
     }
+  }
+
+  /// Escucha eventos de autenticación de Supabase (deep links, etc.)
+  void _listenToAuthEvents() {
+    _authSubscription = SupabaseConfig.client.auth.onAuthStateChange.listen(
+      (data) {
+        final event = data.event;
+
+        // Detectar evento de password recovery (deep link)
+        if (event == supabase.AuthChangeEvent.passwordRecovery) {
+          state = const AuthState(
+            status: AuthStatus.passwordRecoveryMode,
+          );
+        }
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _authSubscription?.cancel();
+    super.dispose();
   }
 
   Future<void> signIn({
@@ -113,7 +159,10 @@ class AuthNotifier extends StateNotifier<AuthState> {
       );
       state = AuthState(status: AuthStatus.authenticated, user: user);
     } on EmailVerificationRequiredException {
-      state = const AuthState(status: AuthStatus.pendingVerification);
+      state = AuthState(
+        status: AuthStatus.pendingVerification,
+        pendingEmail: email,
+      );
     } on AppException catch (e) {
       state = AuthState(
         status: AuthStatus.error,
@@ -147,10 +196,131 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   void clearError() {
-    state = state.copyWith(
-      status: AuthStatus.unauthenticated,
-      errorMessage: null,
-    );
+    if (state.user != null) {
+      state = AuthState(
+        status: AuthStatus.authenticated,
+        user: state.user,
+      );
+    } else {
+      state = const AuthState(status: AuthStatus.unauthenticated);
+    }
+  }
+
+  void clearSuccess() {
+    if (state.user != null) {
+      state = AuthState(
+        status: AuthStatus.authenticated,
+        user: state.user,
+      );
+    } else {
+      state = const AuthState(status: AuthStatus.unauthenticated);
+    }
+  }
+
+  /// Envía email de recuperación de contraseña
+  Future<void> resetPassword(String email) async {
+    state = state.copyWith(status: AuthStatus.loading);
+
+    try {
+      await _repository.resetPassword(email);
+      state = const AuthState(
+        status: AuthStatus.passwordResetSent,
+        successMessage: 'Te enviamos un email para restablecer tu contraseña',
+      );
+    } on AppException catch (e) {
+      state = AuthState(
+        status: AuthStatus.error,
+        errorMessage: e.userMessage,
+      );
+    } catch (e) {
+      state = const AuthState(
+        status: AuthStatus.error,
+        errorMessage: 'Ha ocurrido un error inesperado',
+      );
+    }
+  }
+
+  /// Reenvía email de verificación
+  Future<void> resendVerificationEmail(String email) async {
+    state = state.copyWith(status: AuthStatus.loading);
+
+    try {
+      await _repository.resendVerificationEmail(email);
+      state = AuthState(
+        status: AuthStatus.pendingVerification,
+        pendingEmail: email,
+        successMessage: 'Email de verificación reenviado',
+      );
+    } on AppException catch (e) {
+      state = AuthState(
+        status: AuthStatus.error,
+        errorMessage: e.userMessage,
+        pendingEmail: email,
+      );
+    } catch (e) {
+      state = AuthState(
+        status: AuthStatus.error,
+        errorMessage: 'Ha ocurrido un error inesperado',
+        pendingEmail: email,
+      );
+    }
+  }
+
+  /// Actualiza la contraseña (después de reset password)
+  Future<void> updatePassword(String newPassword) async {
+    state = state.copyWith(status: AuthStatus.loading);
+
+    try {
+      await _repository.updatePassword(newPassword);
+      // Cerrar sesión después de actualizar la contraseña
+      await _repository.signOut();
+      state = const AuthState(
+        status: AuthStatus.passwordUpdated,
+        successMessage: 'Contraseña actualizada correctamente. Inicia sesión con tu nueva contraseña.',
+      );
+    } on AppException catch (e) {
+      state = AuthState(
+        status: AuthStatus.error,
+        errorMessage: e.userMessage,
+      );
+    } catch (e) {
+      state = const AuthState(
+        status: AuthStatus.error,
+        errorMessage: 'Ha ocurrido un error inesperado',
+      );
+    }
+  }
+
+  /// Actualiza el perfil del usuario
+  Future<void> updateProfile({
+    String? displayName,
+    String? avatarUrl,
+  }) async {
+    state = state.copyWith(status: AuthStatus.loading);
+
+    try {
+      final updatedUser = await _repository.updateProfile(
+        displayName: displayName,
+        avatarUrl: avatarUrl,
+      );
+      state = AuthState(
+        status: AuthStatus.profileUpdated,
+        user: updatedUser,
+        successMessage: 'Perfil actualizado correctamente',
+      );
+    } on AppException catch (e) {
+      state = AuthState(
+        status: AuthStatus.error,
+        user: state.user,
+        errorMessage: e.userMessage,
+      );
+    } catch (e) {
+      state = AuthState(
+        status: AuthStatus.error,
+        user: state.user,
+        errorMessage: 'Ha ocurrido un error inesperado',
+      );
+    }
   }
 }
 
