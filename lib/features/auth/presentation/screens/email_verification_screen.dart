@@ -4,6 +4,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../../../core/config/router_config.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -86,7 +87,7 @@ class _EmailVerificationScreenState extends ConsumerState<EmailVerificationScree
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: Icon(PhosphorIcons.arrowLeft()),
           onPressed: () => context.go(AppRoutes.login),
         ),
         title: const Text('Verificar email'),
@@ -101,7 +102,7 @@ class _EmailVerificationScreenState extends ConsumerState<EmailVerificationScree
               children: [
                 // Icono
                 Icon(
-                  Icons.mark_email_unread,
+                  PhosphorIcons.envelopeOpen(PhosphorIconsStyle.duotone),
                   size: 80,
                   color: Theme.of(context).colorScheme.primary,
                 ),
@@ -145,19 +146,19 @@ class _EmailVerificationScreenState extends ConsumerState<EmailVerificationScree
                     children: [
                       _buildInstructionRow(
                         context,
-                        Icons.inbox,
+                        PhosphorIcons.tray(),
                         'Revisa tu bandeja de entrada',
                       ),
                       const SizedBox(height: 12),
                       _buildInstructionRow(
                         context,
-                        Icons.touch_app,
+                        PhosphorIcons.cursorClick(),
                         'Haz clic en el enlace de verificación',
                       ),
                       const SizedBox(height: 12),
                       _buildInstructionRow(
                         context,
-                        Icons.login,
+                        PhosphorIcons.signIn(),
                         'Vuelve aquí e inicia sesión',
                       ),
                     ],
@@ -180,7 +181,7 @@ class _EmailVerificationScreenState extends ConsumerState<EmailVerificationScree
                               color: Theme.of(context).colorScheme.primary,
                             ),
                           )
-                        : const Icon(Icons.refresh),
+                        : Icon(PhosphorIcons.arrowClockwise()),
                     label: Text(
                       _canResend
                           ? 'Reenviar email'
@@ -203,7 +204,7 @@ class _EmailVerificationScreenState extends ConsumerState<EmailVerificationScree
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(
-                      Icons.info_outline,
+                      PhosphorIcons.info(),
                       size: 16,
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
@@ -226,7 +227,7 @@ class _EmailVerificationScreenState extends ConsumerState<EmailVerificationScree
     );
   }
 
-  Widget _buildInstructionRow(BuildContext context, IconData icon, String text) {
+  Widget _buildInstructionRow(BuildContext context, PhosphorIconData icon, String text) {
     return Row(
       children: [
         Icon(

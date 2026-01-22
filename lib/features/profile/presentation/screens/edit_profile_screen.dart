@@ -4,6 +4,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../../../core/config/router_config.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -98,7 +99,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: Icon(PhosphorIcons.arrowLeft()),
           onPressed: () => context.go(AppRoutes.profile),
         ),
         title: const Text('Editar perfil'),
@@ -172,7 +173,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                             shape: BoxShape.circle,
                           ),
                           child: Icon(
-                            Icons.edit,
+                            PhosphorIcons.pencilSimple(),
                             size: 16,
                             color: Theme.of(context).colorScheme.onPrimary,
                           ),
@@ -187,9 +188,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                   controller: _nameController,
                   textCapitalization: TextCapitalization.words,
                   textInputAction: TextInputAction.next,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Nombre',
-                    prefixIcon: Icon(Icons.person_outlined),
+                    prefixIcon: Icon(PhosphorIcons.user()),
                     hintText: 'Tu nombre para mostrar',
                   ),
                   onChanged: (_) => _onFieldChanged(),
@@ -202,9 +203,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                   keyboardType: TextInputType.url,
                   textInputAction: TextInputAction.done,
                   onFieldSubmitted: (_) => _hasChanges ? _handleSave() : null,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'URL de foto de perfil',
-                    prefixIcon: Icon(Icons.link),
+                    prefixIcon: Icon(PhosphorIcons.link()),
                     hintText: 'https://ejemplo.com/foto.jpg',
                   ),
                   onChanged: (_) {
@@ -218,7 +219,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                 Row(
                   children: [
                     Icon(
-                      Icons.info_outline,
+                      PhosphorIcons.info(),
                       size: 14,
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
@@ -240,9 +241,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                   readOnly: true,
                   decoration: InputDecoration(
                     labelText: 'Email',
-                    prefixIcon: const Icon(Icons.email_outlined),
+                    prefixIcon: Icon(PhosphorIcons.envelope()),
                     suffixIcon: Icon(
-                      Icons.lock_outline,
+                      PhosphorIcons.lock(),
                       size: 18,
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),

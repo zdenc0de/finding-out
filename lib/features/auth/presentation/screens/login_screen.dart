@@ -4,6 +4,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../../../core/config/router_config.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -43,8 +44,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        icon: const Icon(
-          Icons.mark_email_unread,
+        icon: Icon(
+          PhosphorIcons.envelopeOpen(PhosphorIconsStyle.duotone),
           color: AppColors.warning,
           size: 48,
         ),
@@ -132,7 +133,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 children: [
                   // Logo - Usa color primario del tema
                   Icon(
-                    Icons.explore,
+                    PhosphorIcons.compassRose(PhosphorIconsStyle.duotone),
                     size: 80,
                     color: Theme.of(context).colorScheme.primary,
                   ),
@@ -161,9 +162,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
                     textInputAction: TextInputAction.next,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: 'Email',
-                      prefixIcon: Icon(Icons.email_outlined),
+                      prefixIcon: Icon(PhosphorIcons.envelope()),
                     ),
                     validator: Validators.validateEmail,
                   ),
@@ -176,12 +177,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     onFieldSubmitted: (_) => _handleLogin(),
                     decoration: InputDecoration(
                       labelText: 'Contraseña',
-                      prefixIcon: const Icon(Icons.lock_outlined),
+                      prefixIcon: Icon(PhosphorIcons.lock()),
                       suffixIcon: IconButton(
                         icon: Icon(
                           _obscurePassword
-                              ? Icons.visibility_outlined
-                              : Icons.visibility_off_outlined,
+                              ? PhosphorIcons.eye()
+                              : PhosphorIcons.eyeSlash(),
                         ),
                         onPressed: () {
                           setState(() {

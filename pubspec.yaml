@@ -36,6 +36,7 @@ dependencies:
   uuid: ^4.5.1
   json_annotation: ^4.9.0 # <--- AGREGADO
   flutter_dotenv: ^5.1.0  # Variables de entorno
+  phosphor_flutter: ^2.1.0
 
 dev_dependencies:
   flutter_test:

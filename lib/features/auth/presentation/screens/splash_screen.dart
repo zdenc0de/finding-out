@@ -2,6 +2,7 @@
 // Pantalla de splash durante verificación de autenticación
 
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});
@@ -14,7 +15,7 @@ class SplashScreen extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.explore,
+              PhosphorIcons.compassRose(PhosphorIconsStyle.duotone),
               size: 80,
               color: Theme.of(context).colorScheme.primary,
             ),

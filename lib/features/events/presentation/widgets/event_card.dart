@@ -2,6 +2,7 @@
 // Widget de tarjeta de evento para listado horizontal
 
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/date_formatter.dart';
@@ -69,7 +70,7 @@ class EventCard extends StatelessWidget {
                       Row(
                         children: [
                           Icon(
-                            Icons.calendar_today_outlined,
+                            PhosphorIcons.calendar(),
                             size: 14,
                             color: Theme.of(context).colorScheme.primary,
                           ),
@@ -94,7 +95,7 @@ class EventCard extends StatelessWidget {
                         Row(
                           children: [
                             Icon(
-                              Icons.location_on_outlined,
+                              PhosphorIcons.mapPin(),
                               size: 14,
                               color: Theme.of(context).colorScheme.primary,
                             ),
@@ -158,7 +159,7 @@ class EventCard extends StatelessWidget {
                 child: CircularProgressIndicator(strokeWidth: 2),
               )
             : Icon(
-                Icons.event_outlined,
+                PhosphorIcons.calendarBlank(PhosphorIconsStyle.duotone),
                 size: 40,
                 color: AppColors.onSurfaceVariant.withAlpha(128),
               ),

@@ -4,6 +4,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../../../core/config/router_config.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -65,7 +66,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: Icon(PhosphorIcons.arrowLeft()),
           onPressed: () => context.go(AppRoutes.login),
         ),
         title: const Text('Recuperar contraseña'),
@@ -90,7 +91,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
         children: [
           // Icono
           Icon(
-            Icons.lock_reset,
+            PhosphorIcons.lockKey(PhosphorIconsStyle.duotone),
             size: 80,
             color: Theme.of(context).colorScheme.primary,
           ),
@@ -119,9 +120,9 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
             keyboardType: TextInputType.emailAddress,
             textInputAction: TextInputAction.done,
             onFieldSubmitted: (_) => _handleResetPassword(),
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: 'Email',
-              prefixIcon: Icon(Icons.email_outlined),
+              prefixIcon: Icon(PhosphorIcons.envelope()),
             ),
             validator: Validators.validateEmail,
           ),
@@ -160,8 +161,8 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         // Icono de éxito
-        const Icon(
-          Icons.mark_email_read,
+        Icon(
+          PhosphorIcons.envelopeSimpleOpen(PhosphorIconsStyle.duotone),
           size: 80,
           color: AppColors.success,
         ),

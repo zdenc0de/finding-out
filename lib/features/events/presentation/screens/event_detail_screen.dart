@@ -3,6 +3,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/date_formatter.dart';
@@ -37,8 +38,8 @@ class EventDetailScreen extends ConsumerWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(
-                  Icons.error_outline,
+                Icon(
+                  PhosphorIcons.warning(PhosphorIconsStyle.duotone),
                   size: 64,
                   color: AppColors.error,
                 ),
@@ -57,8 +58,8 @@ class EventDetailScreen extends ConsumerWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(
-                    Icons.event_busy_outlined,
+                  Icon(
+                    PhosphorIcons.calendarX(PhosphorIconsStyle.duotone),
                     size: 64,
                     color: AppColors.onSurfaceVariant,
                   ),
@@ -109,7 +110,7 @@ class EventDetailScreen extends ConsumerWidget {
                       // Fecha
                       _buildInfoRow(
                         context,
-                        icon: Icons.calendar_today_outlined,
+                        icon: PhosphorIcons.calendar(),
                         label: 'Fecha',
                         value: DateFormatter.formatLongDate(event.startDate),
                       ),
@@ -118,7 +119,7 @@ class EventDetailScreen extends ConsumerWidget {
                       // Hora
                       _buildInfoRow(
                         context,
-                        icon: Icons.access_time_outlined,
+                        icon: PhosphorIcons.clock(),
                         label: 'Hora',
                         value: DateFormatter.formatTime(event.startDate),
                       ),
@@ -128,7 +129,7 @@ class EventDetailScreen extends ConsumerWidget {
                         const SizedBox(height: 8),
                         _buildInfoRow(
                           context,
-                          icon: Icons.location_on_outlined,
+                          icon: PhosphorIcons.mapPin(),
                           label: 'Ubicación',
                           value: event.address!,
                         ),
@@ -169,7 +170,7 @@ class EventDetailScreen extends ConsumerWidget {
       color: AppColors.surfaceVariant,
       child: Center(
         child: Icon(
-          Icons.event_outlined,
+          PhosphorIcons.calendarBlank(PhosphorIconsStyle.duotone),
           size: 64,
           color: AppColors.onSurfaceVariant.withAlpha(128),
         ),
@@ -179,7 +180,7 @@ class EventDetailScreen extends ConsumerWidget {
 
   Widget _buildInfoRow(
     BuildContext context, {
-    required IconData icon,
+    required PhosphorIconData icon,
     required String label,
     required String value,
   }) {

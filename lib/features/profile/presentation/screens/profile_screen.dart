@@ -4,6 +4,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../../../core/config/router_config.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -21,7 +22,7 @@ class ProfileScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: Icon(PhosphorIcons.arrowLeft()),
           onPressed: () => context.go(AppRoutes.home),
         ),
         title: const Text('Mi perfil'),
@@ -76,7 +77,7 @@ class ProfileScreen extends ConsumerWidget {
               // ─────────────────────────────────────────────────────────────
               OutlinedButton.icon(
                 onPressed: () => context.go(AppRoutes.editProfile),
-                icon: const Icon(Icons.edit_outlined),
+                icon: Icon(PhosphorIcons.pencilSimple()),
                 label: const Text('Editar perfil'),
               ),
 
@@ -92,7 +93,7 @@ class ProfileScreen extends ConsumerWidget {
                 children: [
                   _buildInfoRow(
                     context,
-                    icon: Icons.calendar_today_outlined,
+                    icon: PhosphorIcons.calendar(),
                     label: 'Miembro desde',
                     value: _formatDate(user?.createdAt),
                   ),
@@ -126,7 +127,7 @@ class ProfileScreen extends ConsumerWidget {
                 width: double.infinity,
                 child: OutlinedButton.icon(
                   onPressed: () => _showLogoutDialog(context, ref),
-                  icon: const Icon(Icons.logout),
+                  icon: Icon(PhosphorIcons.signOut()),
                   label: const Text('Cerrar sesión'),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.error,
@@ -167,7 +168,7 @@ class ProfileScreen extends ConsumerWidget {
 
   Widget _buildInfoRow(
     BuildContext context, {
-    required IconData icon,
+    required PhosphorIconData icon,
     required String label,
     required String value,
   }) {

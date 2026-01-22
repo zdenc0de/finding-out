@@ -4,6 +4,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../../../core/config/router_config.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -92,7 +93,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                 children: [
                   // Icono
                   Icon(
-                    Icons.lock_outline,
+                    PhosphorIcons.lockKey(PhosphorIconsStyle.duotone),
                     size: 80,
                     color: Theme.of(context).colorScheme.primary,
                   ),
@@ -122,12 +123,12 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                     textInputAction: TextInputAction.next,
                     decoration: InputDecoration(
                       labelText: 'Nueva contraseña',
-                      prefixIcon: const Icon(Icons.lock_outlined),
+                      prefixIcon: Icon(PhosphorIcons.lock()),
                       suffixIcon: IconButton(
                         icon: Icon(
                           _obscurePassword
-                              ? Icons.visibility_outlined
-                              : Icons.visibility_off_outlined,
+                              ? PhosphorIcons.eye()
+                              : PhosphorIcons.eyeSlash(),
                         ),
                         onPressed: () {
                           setState(() => _obscurePassword = !_obscurePassword);
@@ -145,12 +146,12 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                     onFieldSubmitted: (_) => _handleUpdatePassword(),
                     decoration: InputDecoration(
                       labelText: 'Confirmar contraseña',
-                      prefixIcon: const Icon(Icons.lock_outlined),
+                      prefixIcon: Icon(PhosphorIcons.lock()),
                       suffixIcon: IconButton(
                         icon: Icon(
                           _obscureConfirmPassword
-                              ? Icons.visibility_outlined
-                              : Icons.visibility_off_outlined,
+                              ? PhosphorIcons.eye()
+                              : PhosphorIcons.eyeSlash(),
                         ),
                         onPressed: () {
                           setState(() => _obscureConfirmPassword = !_obscureConfirmPassword);

@@ -4,6 +4,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../../../core/config/router_config.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -62,7 +63,7 @@ class _EventsHomeScreenState extends ConsumerState<EventsHomeScreen> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout),
+            icon: Icon(PhosphorIcons.signOut()),
             tooltip: 'Cerrar sesión',
             onPressed: () => _showLogoutDialog(context, ref),
           ),
@@ -95,8 +96,8 @@ class _EventsHomeScreenState extends ConsumerState<EventsHomeScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
-              Icons.error_outline,
+            Icon(
+              PhosphorIcons.warning(PhosphorIconsStyle.duotone),
               size: 64,
               color: AppColors.error,
             ),
@@ -113,7 +114,7 @@ class _EventsHomeScreenState extends ConsumerState<EventsHomeScreen> {
                     .read(eventsNotifierProvider.notifier)
                     .loadEventsGroupedByCategory();
               },
-              icon: const Icon(Icons.refresh),
+              icon: Icon(PhosphorIcons.arrowClockwise()),
               label: const Text('Reintentar'),
             ),
           ],
@@ -195,7 +196,7 @@ class _EventsHomeScreenState extends ConsumerState<EventsHomeScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.event_busy_outlined,
+              PhosphorIcons.calendarX(PhosphorIconsStyle.duotone),
               size: 80,
               color: AppColors.onSurfaceVariant.withAlpha(128),
             ),
@@ -221,7 +222,7 @@ class _EventsHomeScreenState extends ConsumerState<EventsHomeScreen> {
                     .read(eventsNotifierProvider.notifier)
                     .loadEventsGroupedByCategory();
               },
-              icon: const Icon(Icons.refresh),
+              icon: Icon(PhosphorIcons.arrowClockwise()),
               label: const Text('Actualizar'),
             ),
           ],

@@ -2,6 +2,7 @@
 // Widget de sección de categoría con listado horizontal de eventos
 
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../domain/entities/category.dart';
@@ -94,8 +95,8 @@ class CategorySection extends StatelessWidget {
                   ),
                   const SizedBox(width: 4),
                   Icon(
-                    Icons.arrow_forward_ios,
-                    size: 12,
+                    PhosphorIcons.caretRight(),
+                    size: 14,
                     color: Theme.of(context).colorScheme.primary,
                   ),
                 ],
@@ -159,20 +160,20 @@ class CategorySection extends StatelessWidget {
   }
 
   /// Obtiene el IconData a partir del nombre del icono.
-  IconData _getIconData(String iconName) {
-    const iconMap = {
-      'music_note': Icons.music_note,
-      'sports_soccer': Icons.sports_soccer,
-      'storefront': Icons.storefront,
-      'computer': Icons.computer,
-      'palette': Icons.palette,
-      'local_activity': Icons.local_activity,
-      'restaurant': Icons.restaurant,
-      'movie': Icons.movie,
-      'school': Icons.school,
-      'fitness_center': Icons.fitness_center,
+  PhosphorIconData _getIconData(String iconName) {
+    final iconMap = {
+      'music_note': PhosphorIcons.musicNotes(),
+      'sports_soccer': PhosphorIcons.soccerBall(),
+      'storefront': PhosphorIcons.storefront(),
+      'computer': PhosphorIcons.laptop(),
+      'palette': PhosphorIcons.palette(),
+      'local_activity': PhosphorIcons.ticket(),
+      'restaurant': PhosphorIcons.forkKnife(),
+      'movie': PhosphorIcons.filmSlate(),
+      'school': PhosphorIcons.graduationCap(),
+      'fitness_center': PhosphorIcons.barbell(),
     };
 
-    return iconMap[iconName] ?? Icons.event;
+    return iconMap[iconName] ?? PhosphorIcons.calendarBlank();
   }
 }

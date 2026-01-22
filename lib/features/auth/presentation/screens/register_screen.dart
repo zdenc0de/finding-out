@@ -4,6 +4,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../../../core/config/router_config.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -50,8 +51,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(
-        icon: const Icon(
-          Icons.check_circle,
+        icon: Icon(
+          PhosphorIcons.checkCircle(PhosphorIconsStyle.duotone),
           color: AppColors.success,
           size: 48,
         ),
@@ -97,8 +98,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        icon: const Icon(
-          Icons.person,
+        icon: Icon(
+          PhosphorIcons.user(PhosphorIconsStyle.duotone),
           color: AppColors.warning,
           size: 48,
         ),
@@ -176,7 +177,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       appBar: AppBar(
         // Botón de retroceso usando GoRouter
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: Icon(PhosphorIcons.arrowLeft()),
           onPressed: () => context.go(AppRoutes.login),
         ),
         title: const Text('Crear cuenta'),
@@ -193,7 +194,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 children: [
                   // Icono - Usa color primario del tema
                   Icon(
-                    Icons.person_add,
+                    PhosphorIcons.userPlus(PhosphorIconsStyle.duotone),
                     size: 60,
                     color: Theme.of(context).colorScheme.primary,
                   ),
@@ -203,9 +204,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     controller: _nameController,
                     textInputAction: TextInputAction.next,
                     textCapitalization: TextCapitalization.words,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: 'Nombre',
-                      prefixIcon: Icon(Icons.person_outlined),
+                      prefixIcon: Icon(PhosphorIcons.user()),
                     ),
                     validator: Validators.validateName,
                   ),
@@ -215,9 +216,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
                     textInputAction: TextInputAction.next,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: 'Email',
-                      prefixIcon: Icon(Icons.email_outlined),
+                      prefixIcon: Icon(PhosphorIcons.envelope()),
                     ),
                     validator: Validators.validateEmail,
                   ),
@@ -229,12 +230,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     textInputAction: TextInputAction.next,
                     decoration: InputDecoration(
                       labelText: 'Contraseña',
-                      prefixIcon: const Icon(Icons.lock_outlined),
+                      prefixIcon: Icon(PhosphorIcons.lock()),
                       suffixIcon: IconButton(
                         icon: Icon(
                           _obscurePassword
-                              ? Icons.visibility_outlined
-                              : Icons.visibility_off_outlined,
+                              ? PhosphorIcons.eye()
+                              : PhosphorIcons.eyeSlash(),
                         ),
                         onPressed: () {
                           setState(() {
@@ -254,12 +255,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     onFieldSubmitted: (_) => _handleRegister(),
                     decoration: InputDecoration(
                       labelText: 'Confirmar contraseña',
-                      prefixIcon: const Icon(Icons.lock_outlined),
+                      prefixIcon: Icon(PhosphorIcons.lock()),
                       suffixIcon: IconButton(
                         icon: Icon(
                           _obscureConfirmPassword
-                              ? Icons.visibility_outlined
-                              : Icons.visibility_off_outlined,
+                              ? PhosphorIcons.eye()
+                              : PhosphorIcons.eyeSlash(),
                         ),
                         onPressed: () {
                           setState(() {

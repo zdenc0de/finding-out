@@ -4,6 +4,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../../../core/config/router_config.dart';
 import '../../../../core/utils/string_utils.dart';
@@ -33,7 +34,7 @@ class HomeScreen extends ConsumerWidget {
         actions: [
           // Botón de cerrar sesión en el AppBar
           IconButton(
-            icon: const Icon(Icons.logout),
+            icon: Icon(PhosphorIcons.signOut()),
             tooltip: 'Cerrar sesión',
             onPressed: () => _showLogoutDialog(context, ref),
           ),
@@ -84,7 +85,7 @@ class HomeScreen extends ConsumerWidget {
                             ),
                             const SizedBox(width: 4),
                             Icon(
-                              Icons.chevron_right,
+                              PhosphorIcons.caretRight(),
                               color: Theme.of(context).colorScheme.onSurfaceVariant,
                             ),
                           ],
@@ -121,7 +122,7 @@ class HomeScreen extends ConsumerWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(
-                        Icons.explore_outlined,
+                        PhosphorIcons.compassRose(PhosphorIconsStyle.duotone),
                         size: 80,
                         color: Theme.of(context).colorScheme.outlineVariant,
                       ),
