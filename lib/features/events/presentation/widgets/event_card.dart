@@ -42,78 +42,81 @@ class EventCard extends StatelessWidget {
           onTap: onTap,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
               // Imagen del evento
               _buildImage(),
 
               // Contenido
-              Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Título
-                    Text(
-                      event.title,
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 6),
-
-                    // Fecha
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.calendar_today_outlined,
-                          size: 14,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                        const SizedBox(width: 4),
-                        Expanded(
-                          child: Text(
-                            DateFormatter.formatRelativeDate(event.startDate),
-                            style:
-                                Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: AppColors.onSurfaceVariant,
-                                    ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    // Ubicación (si existe)
-                    if (event.address != null) ...[
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Título
+                      Text(
+                        event.title,
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                       const SizedBox(height: 4),
+
+                      // Fecha
                       Row(
                         children: [
                           Icon(
-                            Icons.location_on_outlined,
+                            Icons.calendar_today_outlined,
                             size: 14,
                             color: Theme.of(context).colorScheme.primary,
                           ),
                           const SizedBox(width: 4),
                           Expanded(
                             child: Text(
-                              event.address!,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall
-                                  ?.copyWith(
-                                    color: AppColors.onSurfaceVariant,
-                                  ),
+                              DateFormatter.formatRelativeDate(event.startDate),
+                              style:
+                                  Theme.of(context).textTheme.bodySmall?.copyWith(
+                                        color: AppColors.onSurfaceVariant,
+                                      ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ],
                       ),
+
+                      // Ubicación (si existe)
+                      if (event.address != null) ...[
+                        const SizedBox(height: 2),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.location_on_outlined,
+                              size: 14,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: Text(
+                                event.address!,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(
+                                      color: AppColors.onSurfaceVariant,
+                                    ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
               ),
             ],
