@@ -12,7 +12,8 @@ import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/register_screen.dart';
 import '../../features/auth/presentation/screens/reset_password_screen.dart';
 import '../../features/auth/presentation/screens/splash_screen.dart';
-import '../../features/home/presentation/screens/home_screen.dart';
+import '../../features/events/presentation/screens/event_detail_screen.dart';
+import '../../features/events/presentation/screens/events_home_screen.dart';
 import '../../features/profile/presentation/screens/edit_profile_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
 
@@ -25,6 +26,7 @@ abstract class AppRoutes {
   static const String verifyEmail = '/verify-email';
   static const String resetPassword = '/reset-password';
   static const String home = '/home';
+  static const String eventDetail = '/events/:id';
   static const String profile = '/profile';
   static const String editProfile = '/profile/edit';
 }
@@ -111,12 +113,25 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       // ─────────────────────────────────────────────────────────────────
       // RUTA: /home
-      // Pantalla principal (requiere autenticación)
+      // Pantalla principal de eventos (requiere autenticación)
       // ─────────────────────────────────────────────────────────────────
       GoRoute(
         path: AppRoutes.home,
         name: 'home',
-        builder: (context, state) => const HomeScreen(),
+        builder: (context, state) => const EventsHomeScreen(),
+      ),
+
+      // ─────────────────────────────────────────────────────────────────
+      // RUTA: /events/:id
+      // Detalle de un evento (requiere autenticación)
+      // ─────────────────────────────────────────────────────────────────
+      GoRoute(
+        path: '/events/:id',
+        name: 'eventDetail',
+        builder: (context, state) {
+          final eventId = state.pathParameters['id']!;
+          return EventDetailScreen(eventId: eventId);
+        },
       ),
 
       // ─────────────────────────────────────────────────────────────────

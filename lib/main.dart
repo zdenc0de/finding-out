@@ -4,6 +4,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 import 'core/config/router_config.dart';
 import 'core/config/supabase_config.dart';
@@ -15,6 +16,9 @@ void main() async {
 
   // Cargamos las variables de entorno
   await dotenv.load(fileName: '.env');
+
+  // Inicializamos los datos de localización para fechas en español
+  await initializeDateFormatting('es');
 
   // Inicializamos Supabase antes de correr la app
   await SupabaseConfig.initialize();

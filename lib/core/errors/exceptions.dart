@@ -91,3 +91,30 @@ class UnknownException extends AppException {
   const UnknownException([String? debugInfo])
       : super('Ha ocurrido un error inesperado', debugInfo);
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// EXCEPCIONES DE EVENTOS
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// Excepción base para errores relacionados con eventos
+class EventException extends AppException {
+  const EventException(super.message, [super.debugInfo]);
+}
+
+/// Error al cargar categorías
+class CategoriesLoadException extends EventException {
+  const CategoriesLoadException([String? debugInfo])
+      : super('No se pudieron cargar las categorías', debugInfo);
+}
+
+/// Error al cargar eventos
+class EventsLoadException extends EventException {
+  const EventsLoadException([String? debugInfo])
+      : super('No se pudieron cargar los eventos', debugInfo);
+}
+
+/// Evento no encontrado
+class EventNotFoundException extends EventException {
+  const EventNotFoundException([String? debugInfo])
+      : super('El evento no fue encontrado', debugInfo);
+}
