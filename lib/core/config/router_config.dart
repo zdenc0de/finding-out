@@ -14,8 +14,8 @@ import '../../features/auth/presentation/screens/register_screen.dart';
 import '../../features/auth/presentation/screens/reset_password_screen.dart';
 import '../../features/auth/presentation/screens/splash_screen.dart';
 import '../../features/events/presentation/screens/event_detail_screen.dart';
-import '../../features/events/presentation/screens/events_home_screen.dart';
 import '../../features/profile/presentation/screens/edit_profile_screen.dart';
+import '../widgets/main_shell.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
 
 /// Nombres de las rutas para evitar errores de tipeo
@@ -114,12 +114,13 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       // ─────────────────────────────────────────────────────────────────
       // RUTA: /home
-      // Pantalla principal de eventos (requiere autenticación)
+      // Shell principal con navbar (requiere autenticación)
+      // Contiene: EventsHomeScreen y EventsMapScreen
       // ─────────────────────────────────────────────────────────────────
       GoRoute(
         path: AppRoutes.home,
         name: 'home',
-        builder: (context, state) => const EventsHomeScreen(),
+        builder: (context, state) => const MainShell(),
       ),
 
       // ─────────────────────────────────────────────────────────────────
