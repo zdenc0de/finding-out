@@ -63,14 +63,19 @@ class HomeScreen extends ConsumerWidget {
                         CircleAvatar(
                           radius: 40,
                           backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                          child: Text(
-                            _getInitials(user?.displayName ?? user?.email ?? '?'),
-                            style: TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                          ),
+                          backgroundImage: user?.avatarUrl != null
+                              ? NetworkImage(user!.avatarUrl!)
+                              : null,
+                          child: user?.avatarUrl == null
+                              ? Text(
+                                  _getInitials(user?.displayName ?? user?.email ?? '?'),
+                                  style: TextStyle(
+                                    fontSize: 28,
+                                    fontWeight: FontWeight.bold,
+                                    color: Theme.of(context).colorScheme.primary,
+                                  ),
+                                )
+                              : null,
                         ),
                         const SizedBox(height: 16),
                         // Saludo

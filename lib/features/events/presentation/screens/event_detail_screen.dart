@@ -26,6 +26,10 @@ class EventDetailScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(PhosphorIcons.arrowLeft()),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
         title: const Text('Detalle del evento'),
       ),
       body: eventAsync.when(

@@ -144,11 +144,13 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                         backgroundColor: Theme.of(context).colorScheme.primaryContainer,
                         backgroundImage: _avatarUrlController.text.isNotEmpty
                             ? NetworkImage(_avatarUrlController.text)
-                            : null,
-                        onBackgroundImageError: _avatarUrlController.text.isNotEmpty
+                            : (user?.avatarUrl != null
+                                ? NetworkImage(user!.avatarUrl!)
+                                : null),
+                        onBackgroundImageError: (_avatarUrlController.text.isNotEmpty || user?.avatarUrl != null)
                             ? (_, __) {}
                             : null,
-                        child: _avatarUrlController.text.isEmpty
+                        child: (_avatarUrlController.text.isEmpty && user?.avatarUrl == null)
                             ? Text(
                                 StringUtils.getInitials(
                                   _nameController.text.isNotEmpty

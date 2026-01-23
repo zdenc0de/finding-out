@@ -50,14 +50,19 @@ class _EventsHomeScreenState extends ConsumerState<EventsHomeScreen> {
             onTap: () => context.go(AppRoutes.profile),
             child: CircleAvatar(
               backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-              child: Text(
-                StringUtils.getInitials(user?.displayName ?? user?.email),
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-              ),
+              backgroundImage: user?.avatarUrl != null
+                  ? NetworkImage(user!.avatarUrl!)
+                  : null,
+              child: user?.avatarUrl == null
+                  ? Text(
+                      StringUtils.getInitials(user?.displayName ?? user?.email),
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                    )
+                  : null,
             ),
           ),
         ),

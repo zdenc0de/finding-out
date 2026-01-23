@@ -58,11 +58,10 @@ class _EventsMapScreenState extends ConsumerState<EventsMapScreen> {
       }
     });
 
-    // Actualizar marcadores si ya hay eventos cargados
+    // Actualizar marcadores en el primer build si ya hay eventos cargados
     if (eventsState.status == EventsStatus.loaded && _markers.isEmpty) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _updateMarkers(eventsState);
-      });
+      // Usar Future.microtask para evitar setState durante build
+      Future.microtask(() => _updateMarkers(eventsState));
     }
 
     return Scaffold(
@@ -234,8 +233,4 @@ class _EventsMapScreenState extends ConsumerState<EventsMapScreen> {
     );
   }
 
-  @override
-  void dispose() {
-    super.dispose();
-  }
 }
