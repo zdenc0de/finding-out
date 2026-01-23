@@ -1,6 +1,7 @@
 // lib/features/events/presentation/widgets/event_card.dart
 // Widget de tarjeta de evento para listado horizontal
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -30,15 +31,16 @@ class EventCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: cardWidth,
-      child: Card(
-        clipBehavior: Clip.antiAlias,
-        elevation: 2,
-        shadowColor: AppColors.shadow,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+    return RepaintBoundary(
+      child: SizedBox(
+        width: cardWidth,
+        child: Card(
+          clipBehavior: Clip.hardEdge, // Más rápido que antiAlias
+          elevation: 2,
+          shadowColor: AppColors.shadow,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         child: InkWell(
           onTap: onTap,
           child: Column(
@@ -124,6 +126,7 @@ class EventCard extends StatelessWidget {
           ),
         ),
       ),
+      ),
     );
   }
 
@@ -132,14 +135,13 @@ class EventCard extends StatelessWidget {
       return SizedBox(
         height: imageHeight,
         width: double.infinity,
-        child: Image.network(
-          event.imageUrl!,
+        child: CachedNetworkImage(
+          imageUrl: event.imageUrl!,
           fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) => _buildPlaceholder(),
-          loadingBuilder: (context, child, loadingProgress) {
-            if (loadingProgress == null) return child;
-            return _buildPlaceholder(isLoading: true);
-          },
+          memCacheWidth: (cardWidth * 2).toInt(), // 2x para pantallas high-DPI
+          memCacheHeight: (imageHeight * 2).toInt(),
+          placeholder: (context, url) => _buildPlaceholder(isLoading: true),
+          errorWidget: (context, url, error) => _buildPlaceholder(),
         ),
       );
     }

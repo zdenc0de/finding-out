@@ -114,6 +114,10 @@ class CategorySection extends StatelessWidget {
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16),
         itemCount: events.length,
+        cacheExtent: 500, // Pre-renderiza ~2-3 tarjetas extra
+        physics: const BouncingScrollPhysics(
+          decelerationRate: ScrollDecelerationRate.fast,
+        ),
         itemBuilder: (context, index) {
           final event = events[index];
           return Padding(

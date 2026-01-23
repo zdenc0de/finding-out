@@ -134,56 +134,61 @@ class _EventsHomeScreenState extends ConsumerState<EventsHomeScreen> {
       onRefresh: () async {
         await ref.read(eventsNotifierProvider.notifier).refresh();
       },
-      child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 16),
-
-            // Título de sección
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Text(
-                'Explora tu ciudad',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Text(
-                'Descubre eventos cerca de ti',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: AppColors.onSurfaceVariant,
-                    ),
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // Secciones de categorías
-            ...categories.map((category) {
-              final events = eventsState.eventsByCategory[category] ?? [];
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 24),
-                child: CategorySection(
-                  category: category,
-                  events: events,
-                  onSeeAllTap: () {
-                    // TODO: Navegar a listado completo de categoría
-                  },
-                  onEventTap: (event) {
-                    context.push('/events/${event.id}');
-                  },
-                ),
-              );
-            }),
-
-            const SizedBox(height: 16),
-          ],
+      child: ListView.builder(
+        physics: const AlwaysScrollableScrollPhysics(
+          parent: BouncingScrollPhysics(
+            decelerationRate: ScrollDecelerationRate.fast,
+          ),
         ),
+        cacheExtent: 500, // Pre-renderiza contenido extra
+        itemCount: categories.length + 1, // +1 para el header
+        itemBuilder: (context, index) {
+          // Header (índice 0)
+          if (index == 0) {
+            return Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Explora tu ciudad',
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Descubre eventos cerca de ti',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: AppColors.onSurfaceVariant,
+                        ),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          // Categorías (índice 1 en adelante)
+          final categoryIndex = index - 1;
+          final category = categories[categoryIndex];
+          final events = eventsState.eventsByCategory[category] ?? [];
+
+          return RepaintBoundary(
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 24),
+              child: CategorySection(
+                category: category,
+                events: events,
+                onSeeAllTap: () {
+                  // TODO: Navegar a listado completo de categoría
+                },
+                onEventTap: (event) {
+                  context.push('/events/${event.id}');
+                },
+              ),
+            ),
+          );
+        },
       ),
     );
   }

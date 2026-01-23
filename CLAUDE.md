@@ -67,16 +67,30 @@ Widget usage:
 ### Navigation (GoRouter)
 
 Routes defined in `lib/core/config/router_config.dart`:
-- `/login`, `/register` - public routes
-- `/home` - protected route (requires auth)
+- **Public:** `/login`, `/register`, `/forgot-password`, `/verify-email`, `/reset-password`
+- **Protected:** `/home` (MainShell with navbar), `/events/:id`, `/profile`, `/profile/edit`
 
-The router has built-in redirect logic that protects routes based on `AuthStatus`.
+The router has redirect logic that protects routes based on `AuthStatus`. Password recovery uses deep links (`findingout://callback`).
+
+### Main Shell
+
+`lib/core/widgets/main_shell.dart` wraps the home experience with a bottom navbar containing:
+- Events list (EventsHomeScreen)
+- Map view (EventsMapScreen)
 
 ### Theming
 
 All colors in `lib/core/theme/app_colors.dart`, theme in `lib/core/theme/app_theme.dart`.
 - Use `Theme.of(context)` to access theme properties
 - Use `AppColors.primary` etc. for direct color access
+
+### Icons
+
+Uses **Phosphor Icons** (`phosphor_flutter`). Usage:
+```dart
+Icon(PhosphorIcons.calendar())                           // Regular
+Icon(PhosphorIcons.calendar(PhosphorIconsStyle.duotone)) // Duotone for emphasis
+```
 
 ### Backend (Supabase)
 
@@ -93,3 +107,5 @@ Initialized in `main()` via `SupabaseConfig.initialize()`. Access client via `Su
 
 **Error handling in auth:**
 `auth_repository_impl.dart` has `_mapAuthError()` that translates Supabase errors to Spanish.
+
+**UI Language:** All user-facing text is in Spanish.
