@@ -13,6 +13,7 @@ import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/register_screen.dart';
 import '../../features/auth/presentation/screens/reset_password_screen.dart';
 import '../../features/auth/presentation/screens/splash_screen.dart';
+import '../../features/events/presentation/screens/category_events_screen.dart';
 import '../../features/events/presentation/screens/event_detail_screen.dart';
 import '../../features/profile/presentation/screens/edit_profile_screen.dart';
 import '../widgets/main_shell.dart';
@@ -28,6 +29,7 @@ abstract class AppRoutes {
   static const String resetPassword = '/reset-password';
   static const String home = '/home';
   static const String eventDetail = '/events/:id';
+  static const String categoryEvents = '/events/category/:categoryId';
   static const String profile = '/profile';
   static const String editProfile = '/profile/edit';
 }
@@ -121,6 +123,19 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.home,
         name: 'home',
         builder: (context, state) => const MainShell(),
+      ),
+
+      // ─────────────────────────────────────────────────────────────────
+      // RUTA: /events/category/:categoryId
+      // Listado de todos los eventos de una categoría (requiere autenticación)
+      // ─────────────────────────────────────────────────────────────────
+      GoRoute(
+        path: AppRoutes.categoryEvents,
+        name: 'categoryEvents',
+        builder: (context, state) {
+          final categoryId = state.pathParameters['categoryId']!;
+          return CategoryEventsScreen(categoryId: categoryId);
+        },
       ),
 
       // ─────────────────────────────────────────────────────────────────

@@ -185,7 +185,7 @@ class _EventsHomeScreenState extends ConsumerState<EventsHomeScreen> {
                 category: category,
                 events: events,
                 onSeeAllTap: () {
-                  // TODO: Navegar a listado completo de categoría
+                  context.push('/events/category/${category.id}');
                 },
                 onEventTap: (event) {
                   context.push('/events/${event.id}');
