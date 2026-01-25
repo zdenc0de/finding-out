@@ -35,6 +35,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   }
 
   void _loadUserData() {
+    if (!mounted) return;
     final user = ref.read(authNotifierProvider).user;
     if (user != null) {
       _nameController.text = user.displayName ?? '';
@@ -210,10 +211,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                     prefixIcon: Icon(PhosphorIcons.link()),
                     hintText: 'https://ejemplo.com/foto.jpg',
                   ),
-                  onChanged: (_) {
-                    _onFieldChanged();
-                    setState(() {}); // Actualizar preview del avatar
-                  },
+                  onChanged: (_) => _onFieldChanged(), // _onFieldChanged ya hace setState
                   validator: Validators.validateUrl,
                 ),
                 const SizedBox(height: 8),

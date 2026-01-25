@@ -45,7 +45,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
     // Escuchar cambios de estado
     ref.listen<AuthState>(authNotifierProvider, (previous, next) {
       if (next.status == AuthStatus.passwordResetSent) {
-        setState(() => _emailSent = true);
+        if (mounted) setState(() => _emailSent = true);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(next.successMessage ?? 'Email enviado'),

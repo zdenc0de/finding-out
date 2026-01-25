@@ -1,6 +1,8 @@
 // lib/features/auth/presentation/screens/email_verification_screen.dart
 // Pantalla de verificación de email
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -22,12 +24,20 @@ class EmailVerificationScreen extends ConsumerStatefulWidget {
 class _EmailVerificationScreenState extends ConsumerState<EmailVerificationScreen> {
   bool _canResend = true;
   int _resendCooldown = 0;
+  Timer? _cooldownTimer;
 
   String get _email {
+    if (!mounted) return widget.email ?? '';
     // Priorizar el email pasado como parámetro, luego el del estado
     return widget.email ??
            ref.read(authNotifierProvider).pendingEmail ??
            '';
+  }
+
+  @override
+  void dispose() {
+    _cooldownTimer?.cancel();
+    super.dispose();
   }
 
   Future<void> _handleResendEmail() async {
@@ -45,14 +55,16 @@ class _EmailVerificationScreenState extends ConsumerState<EmailVerificationScree
   }
 
   void _startCooldownTimer() {
-    Future.delayed(const Duration(seconds: 1), () {
-      if (mounted && _resendCooldown > 0) {
-        setState(() => _resendCooldown--);
-        if (_resendCooldown > 0) {
-          _startCooldownTimer();
-        } else {
-          setState(() => _canResend = true);
-        }
+    _cooldownTimer?.cancel();
+    _cooldownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      setState(() => _resendCooldown--);
+      if (_resendCooldown <= 0) {
+        timer.cancel();
+        setState(() => _canResend = true);
       }
     });
   }

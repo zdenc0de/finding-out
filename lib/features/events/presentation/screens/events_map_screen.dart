@@ -26,6 +26,7 @@ class EventsMapScreen extends ConsumerStatefulWidget {
 
 class _EventsMapScreenState extends ConsumerState<EventsMapScreen> {
   final Completer<GoogleMapController> _mapController = Completer();
+  bool _markersInitialized = false;
 
   // Posición inicial del mapa (Ciudad de México por defecto)
   static const LatLng _defaultPosition = LatLng(19.4326, -99.1332);
@@ -40,11 +41,21 @@ class _EventsMapScreenState extends ConsumerState<EventsMapScreen> {
     super.initState();
     // Cargar eventos si no están cargados
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       final eventsState = ref.read(eventsNotifierProvider);
       if (eventsState.status == EventsStatus.initial) {
         ref.read(eventsNotifierProvider.notifier).loadEventsGroupedByCategory();
       }
     });
+  }
+
+  @override
+  void dispose() {
+    // Completar el controller con error si no se completó para evitar futures colgados
+    if (!_mapController.isCompleted) {
+      _mapController.completeError(StateError('Widget disposed before map initialized'));
+    }
+    super.dispose();
   }
 
   @override
@@ -59,9 +70,13 @@ class _EventsMapScreenState extends ConsumerState<EventsMapScreen> {
     });
 
     // Actualizar marcadores en el primer build si ya hay eventos cargados
-    if (eventsState.status == EventsStatus.loaded && _markers.isEmpty) {
-      // Usar Future.microtask para evitar setState durante build
-      Future.microtask(() => _updateMarkers(eventsState));
+    if (eventsState.status == EventsStatus.loaded && !_markersInitialized) {
+      _markersInitialized = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _updateMarkers(eventsState);
+        }
+      });
     }
 
     return Scaffold(
@@ -220,17 +235,31 @@ class _EventsMapScreenState extends ConsumerState<EventsMapScreen> {
 
   /// Navega a la ubicación actual del usuario.
   Future<void> _goToMyLocation() async {
-    // Por ahora, centramos en la posición por defecto
-    // TODO: Implementar geolocalización real
-    final controller = await _mapController.future;
-    controller.animateCamera(
-      CameraUpdate.newCameraPosition(
-        const CameraPosition(
-          target: _defaultPosition,
-          zoom: _defaultZoom,
+    if (!mounted) return;
+
+    try {
+      // Por ahora, centramos en la posición por defecto
+      // TODO: Implementar geolocalización real
+      final controller = await _mapController.future.timeout(
+        const Duration(seconds: 5),
+        onTimeout: () => throw TimeoutException('Map controller timeout'),
+      );
+
+      if (!mounted) return;
+
+      controller.animateCamera(
+        CameraUpdate.newCameraPosition(
+          const CameraPosition(
+            target: _defaultPosition,
+            zoom: _defaultZoom,
+          ),
         ),
-      ),
-    );
+      );
+    } catch (e) {
+      // Ignorar errores si el widget ya no está montado
+      if (!mounted) return;
+      debugPrint('Error navigating to location: $e');
+    }
   }
 
 }
