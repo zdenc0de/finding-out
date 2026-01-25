@@ -1,17 +1,20 @@
 // lib/features/events/presentation/screens/events_map_screen.dart
-// Pantalla del mapa de eventos con Google Maps
-
-import 'dart:async';
+// Pantalla del mapa de eventos con flutter_map + OpenStreetMap
 
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
+import '../../../../core/providers/location_provider.dart';
+import '../../../../core/services/location/location_state.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/location_helper.dart';
 import '../../domain/entities/event.dart';
 import '../providers/events_provider.dart';
 import '../widgets/event_bottom_sheet.dart';
+import '../widgets/event_marker.dart';
 
 /// Pantalla del mapa que muestra los eventos como marcadores.
 ///
@@ -25,16 +28,8 @@ class EventsMapScreen extends ConsumerStatefulWidget {
 }
 
 class _EventsMapScreenState extends ConsumerState<EventsMapScreen> {
-  final Completer<GoogleMapController> _mapController = Completer();
-  bool _markersInitialized = false;
-
-  // Posición inicial del mapa (Ciudad de México por defecto)
-  static const LatLng _defaultPosition = LatLng(19.4326, -99.1332);
-
-  // Zoom inicial
-  static const double _defaultZoom = 12.0;
-
-  Set<Marker> _markers = {};
+  final MapController _mapController = MapController();
+  bool _mapReady = false;
 
   @override
   void initState() {
@@ -50,34 +45,24 @@ class _EventsMapScreenState extends ConsumerState<EventsMapScreen> {
   }
 
   @override
-  void dispose() {
-    // Completar el controller con error si no se completó para evitar futures colgados
-    if (!_mapController.isCompleted) {
-      _mapController.completeError(StateError('Widget disposed before map initialized'));
-    }
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final eventsState = ref.watch(eventsNotifierProvider);
+    final locationState = ref.watch(locationNotifierProvider);
 
-    // Escuchar cambios en eventos para actualizar marcadores
-    ref.listen<EventsState>(eventsNotifierProvider, (previous, next) {
-      if (next.status == EventsStatus.loaded) {
-        _updateMarkers(next);
+    // Escuchar cambios en el estado de ubicación para mostrar errores
+    ref.listen<LocationState>(locationNotifierProvider, (previous, next) {
+      if (next.hasError && next.errorMessage != null) {
+        _showLocationError(next);
+      } else if (next.status == LocationStatus.success && next.position != null) {
+        _animateToPosition(next.position!);
       }
     });
 
-    // Actualizar marcadores en el primer build si ya hay eventos cargados
-    if (eventsState.status == EventsStatus.loaded && !_markersInitialized) {
-      _markersInitialized = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          _updateMarkers(eventsState);
-        }
-      });
-    }
+    // Construir marcadores de eventos
+    final eventMarkers = _buildEventMarkers(eventsState);
+
+    // Construir marcador de ubicación del usuario
+    final userMarker = _buildUserLocationMarker(locationState);
 
     return Scaffold(
       appBar: AppBar(
@@ -95,25 +80,30 @@ class _EventsMapScreenState extends ConsumerState<EventsMapScreen> {
       ),
       body: Stack(
         children: [
-          // Mapa de Google
-          GoogleMap(
-            initialCameraPosition: const CameraPosition(
-              target: _defaultPosition,
-              zoom: _defaultZoom,
+          // Mapa con OpenStreetMap
+          FlutterMap(
+            mapController: _mapController,
+            options: MapOptions(
+              initialCenter: LocationHelper.defaultPosition,
+              initialZoom: LocationHelper.defaultZoom,
+              minZoom: 3,
+              maxZoom: 18,
+              onMapReady: () {
+                setState(() => _mapReady = true);
+              },
             ),
-            markers: _markers,
-            onMapCreated: (controller) {
-              if (!_mapController.isCompleted) {
-                _mapController.complete(controller);
-              }
-            },
-            myLocationEnabled: true,
-            myLocationButtonEnabled: false,
-            zoomControlsEnabled: false,
-            mapToolbarEnabled: false,
-            compassEnabled: true,
-            // Padding inferior para que el botón de ubicación no quede detrás del navbar
-            padding: const EdgeInsets.only(bottom: 100),
+            children: [
+              // Capa de tiles de OpenStreetMap
+              TileLayer(
+                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                userAgentPackageName: 'com.findingout.app',
+                maxZoom: 19,
+              ),
+              // Capa de marcadores de eventos
+              MarkerLayer(markers: eventMarkers),
+              // Capa de marcador del usuario (si tiene ubicación)
+              if (userMarker != null) MarkerLayer(markers: [userMarker]),
+            ],
           ),
 
           // Indicador de carga
@@ -126,7 +116,7 @@ class _EventsMapScreenState extends ConsumerState<EventsMapScreen> {
             ),
 
           // Mensaje si no hay eventos con ubicación
-          if (eventsState.status == EventsStatus.loaded && _markers.isEmpty)
+          if (eventsState.status == EventsStatus.loaded && eventMarkers.isEmpty)
             Positioned(
               top: 16,
               left: 16,
@@ -161,10 +151,19 @@ class _EventsMapScreenState extends ConsumerState<EventsMapScreen> {
               heroTag: 'my_location',
               onPressed: _goToMyLocation,
               backgroundColor: AppColors.surface,
-              child: Icon(
-                PhosphorIcons.navigationArrow(PhosphorIconsStyle.fill),
-                color: AppColors.primary,
-              ),
+              child: locationState.isLoading
+                  ? SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: AppColors.primary,
+                      ),
+                    )
+                  : Icon(
+                      PhosphorIcons.navigationArrow(PhosphorIconsStyle.fill),
+                      color: AppColors.primary,
+                    ),
             ),
           ),
         ],
@@ -172,52 +171,46 @@ class _EventsMapScreenState extends ConsumerState<EventsMapScreen> {
     );
   }
 
-  /// Actualiza los marcadores del mapa basándose en los eventos.
-  void _updateMarkers(EventsState eventsState) {
-    final Set<Marker> markers = {};
+  /// Construye la lista de marcadores de eventos.
+  List<Marker> _buildEventMarkers(EventsState eventsState) {
+    final List<Marker> markers = [];
 
-    // Obtener todos los eventos de todas las categorías
     for (final entry in eventsState.eventsByCategory.entries) {
       final category = entry.key;
       final events = entry.value;
 
       for (final event in events) {
-        // Solo agregar eventos que tengan coordenadas
-        if (event.locationLat != null && event.locationLng != null) {
+        // Solo agregar eventos que tengan coordenadas válidas
+        if (LocationHelper.isValidCoordinate(
+            event.locationLat, event.locationLng)) {
           markers.add(
             Marker(
-              markerId: MarkerId(event.id),
-              position: LatLng(event.locationLat!, event.locationLng!),
-              infoWindow: InfoWindow(
-                title: event.title,
-                snippet: event.address ?? 'Sin dirección',
+              point: LatLng(event.locationLat!, event.locationLng!),
+              width: 40,
+              height: 40,
+              child: GestureDetector(
+                onTap: () => _showEventBottomSheet(event, category.color),
+                child: EventMarkerWidget(colorHex: category.color),
               ),
-              icon: BitmapDescriptor.defaultMarkerWithHue(
-                _getCategoryHue(category.color),
-              ),
-              onTap: () => _showEventBottomSheet(event, category.color),
             ),
           );
         }
       }
     }
 
-    if (mounted) {
-      setState(() {
-        _markers = markers;
-      });
-    }
+    return markers;
   }
 
-  /// Convierte un color hex a un hue para el marcador.
-  double _getCategoryHue(String colorHex) {
-    try {
-      final color = Color(int.parse(colorHex.replaceFirst('#', '0xFF')));
-      final hsvColor = HSVColor.fromColor(color);
-      return hsvColor.hue;
-    } catch (e) {
-      return BitmapDescriptor.hueRed;
-    }
+  /// Construye el marcador de ubicación del usuario.
+  Marker? _buildUserLocationMarker(LocationState locationState) {
+    if (!locationState.hasLocation) return null;
+
+    return Marker(
+      point: locationState.position!,
+      width: 48,
+      height: 48,
+      child: const UserLocationMarker(),
+    );
   }
 
   /// Muestra el bottom sheet con la información del evento.
@@ -237,29 +230,59 @@ class _EventsMapScreenState extends ConsumerState<EventsMapScreen> {
   Future<void> _goToMyLocation() async {
     if (!mounted) return;
 
-    try {
-      // Por ahora, centramos en la posición por defecto
-      // TODO: Implementar geolocalización real
-      final controller = await _mapController.future.timeout(
-        const Duration(seconds: 5),
-        onTimeout: () => throw TimeoutException('Map controller timeout'),
-      );
+    final locationState = ref.read(locationNotifierProvider);
 
-      if (!mounted) return;
-
-      controller.animateCamera(
-        CameraUpdate.newCameraPosition(
-          const CameraPosition(
-            target: _defaultPosition,
-            zoom: _defaultZoom,
-          ),
-        ),
-      );
-    } catch (e) {
-      // Ignorar errores si el widget ya no está montado
-      if (!mounted) return;
-      debugPrint('Error navigating to location: $e');
+    // Si ya tenemos ubicación, simplemente animar a ella
+    if (locationState.hasLocation && locationState.position != null) {
+      _animateToPosition(locationState.position!);
+      return;
     }
+
+    // Si no tenemos ubicación, solicitarla
+    await ref.read(locationNotifierProvider.notifier).getCurrentLocation();
   }
 
+  /// Anima el mapa a una posición específica.
+  void _animateToPosition(LatLng position) {
+    if (!_mapReady) return;
+
+    _mapController.move(position, LocationHelper.userLocationZoom);
+  }
+
+  /// Muestra un error de ubicación al usuario.
+  void _showLocationError(LocationState locationState) {
+    if (!mounted) return;
+
+    final String message = locationState.errorMessage ?? 'Error de ubicación';
+    String? actionLabel;
+    VoidCallback? onAction;
+
+    // Determinar acción según el tipo de error
+    if (locationState.status == LocationStatus.serviceDisabled) {
+      actionLabel = 'Configuración';
+      onAction = () {
+        ref.read(locationNotifierProvider.notifier).openLocationSettings();
+      };
+    } else if (locationState.status ==
+        LocationStatus.permissionPermanentlyDenied) {
+      actionLabel = 'Configuración';
+      onAction = () {
+        ref.read(locationNotifierProvider.notifier).openAppSettings();
+      };
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        action: actionLabel != null && onAction != null
+            ? SnackBarAction(
+                label: actionLabel,
+                onPressed: onAction,
+              )
+            : null,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 4),
+      ),
+    );
+  }
 }

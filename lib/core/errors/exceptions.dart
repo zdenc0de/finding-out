@@ -118,3 +118,36 @@ class EventNotFoundException extends EventException {
   const EventNotFoundException([String? debugInfo])
       : super('El evento no fue encontrado', debugInfo);
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// EXCEPCIONES DE UBICACIÓN
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// Excepción base para errores relacionados con ubicación
+class LocationException extends AppException {
+  const LocationException(super.message, [super.debugInfo]);
+}
+
+/// Servicio de ubicación deshabilitado (GPS apagado)
+class LocationServiceDisabledException extends LocationException {
+  const LocationServiceDisabledException([String? debugInfo])
+      : super('El servicio de ubicación está deshabilitado. Activa el GPS', debugInfo);
+}
+
+/// Permiso de ubicación denegado
+class LocationPermissionDeniedException extends LocationException {
+  const LocationPermissionDeniedException([String? debugInfo])
+      : super('Se requiere permiso de ubicación para esta función', debugInfo);
+}
+
+/// Permiso de ubicación denegado permanentemente
+class LocationPermissionPermanentlyDeniedException extends LocationException {
+  const LocationPermissionPermanentlyDeniedException([String? debugInfo])
+      : super('Permiso de ubicación denegado. Habilítalo en la configuración de la app', debugInfo);
+}
+
+/// Error al obtener la ubicación
+class LocationFetchException extends LocationException {
+  const LocationFetchException([String? debugInfo])
+      : super('No se pudo obtener tu ubicación', debugInfo);
+}
