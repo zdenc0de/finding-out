@@ -60,7 +60,7 @@ class LocationNotifier extends StateNotifier<LocationState> {
         errorMessage: e.message,
       );
     } catch (e) {
-      state = LocationState(
+      state = const LocationState(
         status: LocationStatus.error,
         errorMessage: 'Error inesperado al obtener ubicación',
       );

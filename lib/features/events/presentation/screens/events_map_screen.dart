@@ -152,7 +152,7 @@ class _EventsMapScreenState extends ConsumerState<EventsMapScreen> {
               onPressed: _goToMyLocation,
               backgroundColor: AppColors.surface,
               child: locationState.isLoading
-                  ? SizedBox(
+                  ? const SizedBox(
                       width: 20,
                       height: 20,
                       child: CircularProgressIndicator(
