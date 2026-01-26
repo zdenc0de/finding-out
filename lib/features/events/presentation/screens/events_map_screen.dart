@@ -15,6 +15,7 @@ import '../../domain/entities/event.dart';
 import '../providers/events_provider.dart';
 import '../widgets/event_bottom_sheet.dart';
 import '../widgets/event_marker.dart';
+import '../widgets/map_controls.dart';
 
 /// Pantalla del mapa que muestra los eventos como marcadores.
 ///
@@ -30,6 +31,8 @@ class EventsMapScreen extends ConsumerStatefulWidget {
 class _EventsMapScreenState extends ConsumerState<EventsMapScreen> {
   final MapController _mapController = MapController();
   bool _mapReady = false;
+  double _currentRotation = 0;
+  double _currentZoom = LocationHelper.defaultZoom;
 
   @override
   void initState() {
@@ -88,8 +91,17 @@ class _EventsMapScreenState extends ConsumerState<EventsMapScreen> {
               initialZoom: LocationHelper.defaultZoom,
               minZoom: 3,
               maxZoom: 18,
+              interactionOptions: const InteractionOptions(
+                flags: InteractiveFlag.all,
+              ),
               onMapReady: () {
                 setState(() => _mapReady = true);
+              },
+              onMapEvent: (event) {
+                setState(() {
+                  _currentRotation = _mapController.camera.rotation * 3.14159 / 180;
+                  _currentZoom = _mapController.camera.zoom;
+                });
               },
             ),
             children: [
@@ -143,27 +155,17 @@ class _EventsMapScreenState extends ConsumerState<EventsMapScreen> {
               ),
             ),
 
-          // Botón de mi ubicación
+          // Controles del mapa (brújula, zoom, ubicación)
           Positioned(
             right: 16,
             bottom: 120,
-            child: FloatingActionButton.small(
-              heroTag: 'my_location',
-              onPressed: _goToMyLocation,
-              backgroundColor: AppColors.surface,
-              child: locationState.isLoading
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: AppColors.primary,
-                      ),
-                    )
-                  : Icon(
-                      PhosphorIcons.navigationArrow(PhosphorIconsStyle.fill),
-                      color: AppColors.primary,
-                    ),
+            child: MapControls(
+              mapRotation: _currentRotation,
+              onZoomIn: _zoomIn,
+              onZoomOut: _zoomOut,
+              onCompassTap: _resetRotation,
+              onMyLocationTap: _goToMyLocation,
+              isLoadingLocation: locationState.isLoading,
             ),
           ),
         ],
@@ -224,6 +226,26 @@ class _EventsMapScreenState extends ConsumerState<EventsMapScreen> {
         categoryColor: categoryColor,
       ),
     );
+  }
+
+  /// Aumenta el zoom del mapa.
+  void _zoomIn() {
+    if (!_mapReady) return;
+    final newZoom = (_currentZoom + 1).clamp(3.0, 18.0);
+    _mapController.move(_mapController.camera.center, newZoom);
+  }
+
+  /// Disminuye el zoom del mapa.
+  void _zoomOut() {
+    if (!_mapReady) return;
+    final newZoom = (_currentZoom - 1).clamp(3.0, 18.0);
+    _mapController.move(_mapController.camera.center, newZoom);
+  }
+
+  /// Resetea la rotación del mapa al norte.
+  void _resetRotation() {
+    if (!_mapReady) return;
+    _mapController.rotate(0);
   }
 
   /// Navega a la ubicación actual del usuario.
