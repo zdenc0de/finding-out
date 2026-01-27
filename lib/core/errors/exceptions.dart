@@ -119,6 +119,12 @@ class EventNotFoundException extends EventException {
       : super('El evento no fue encontrado', debugInfo);
 }
 
+/// Error al crear un evento
+class EventCreateException extends EventException {
+  const EventCreateException([String? debugInfo])
+      : super('No se pudo crear el evento', debugInfo);
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // EXCEPCIONES DE UBICACIÓN
 // ═══════════════════════════════════════════════════════════════════════════

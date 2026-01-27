@@ -14,6 +14,7 @@ import '../../features/auth/presentation/screens/register_screen.dart';
 import '../../features/auth/presentation/screens/reset_password_screen.dart';
 import '../../features/auth/presentation/screens/splash_screen.dart';
 import '../../features/events/presentation/screens/category_events_screen.dart';
+import '../../features/events/presentation/screens/create_event_screen.dart';
 import '../../features/events/presentation/screens/event_detail_screen.dart';
 import '../../features/profile/presentation/screens/edit_profile_screen.dart';
 import '../widgets/main_shell.dart';
@@ -28,6 +29,7 @@ abstract class AppRoutes {
   static const String verifyEmail = '/verify-email';
   static const String resetPassword = '/reset-password';
   static const String home = '/home';
+  static const String createEvent = '/events/create';
   static const String eventDetail = '/events/:id';
   static const String categoryEvents = '/events/category/:categoryId';
   static const String profile = '/profile';
@@ -136,6 +138,16 @@ final routerProvider = Provider<GoRouter>((ref) {
           final categoryId = state.pathParameters['categoryId']!;
           return CategoryEventsScreen(categoryId: categoryId);
         },
+      ),
+
+      // ─────────────────────────────────────────────────────────────────
+      // RUTA: /events/create
+      // Pantalla para crear un nuevo evento (requiere autenticación)
+      // ─────────────────────────────────────────────────────────────────
+      GoRoute(
+        path: AppRoutes.createEvent,
+        name: 'createEvent',
+        builder: (context, state) => const CreateEventScreen(),
       ),
 
       // ─────────────────────────────────────────────────────────────────

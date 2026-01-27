@@ -9,6 +9,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
 
   # State Management & Routing
   flutter_riverpod: ^2.5.1
@@ -32,7 +34,7 @@ dependencies:
   add_2_calendar: ^3.0.1
   
   # Utilities
-  intl: ^0.19.0
+  intl: ^0.20.2
   uuid: ^4.5.1
   json_annotation: ^4.9.0 # <--- AGREGADO
   flutter_dotenv: ^5.1.0  # Variables de entorno

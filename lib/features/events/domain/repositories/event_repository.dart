@@ -23,4 +23,19 @@ abstract class EventRepository {
 
   /// Obtiene un evento específico por su ID.
   Future<Event?> getEventById(String id);
+
+  /// Crea un nuevo evento.
+  ///
+  /// Retorna el evento creado con su ID generado por el servidor.
+  Future<Event> createEvent({
+    required String title,
+    String? description,
+    required String categoryId,
+    String? imageUrl,
+    double? locationLat,
+    double? locationLng,
+    String? address,
+    required DateTime startDate,
+    DateTime? endDate,
+  });
 }

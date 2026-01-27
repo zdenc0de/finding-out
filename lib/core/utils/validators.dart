@@ -99,4 +99,18 @@ class Validators {
     }
     return null;
   }
+
+  /// Valida el título de un evento (obligatorio, 3-100 caracteres)
+  static String? validateEventTitle(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Ingresa el título del evento';
+    }
+    if (value.trim().length < 3) {
+      return 'El título debe tener al menos 3 caracteres';
+    }
+    if (value.trim().length > 100) {
+      return 'El título no puede tener más de 100 caracteres';
+    }
+    return null;
+  }
 }

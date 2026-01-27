@@ -112,4 +112,47 @@ class EventRepositoryImpl implements EventRepository {
       throw EventNotFoundException(e.toString());
     }
   }
+
+  @override
+  Future<Event> createEvent({
+    required String title,
+    String? description,
+    required String categoryId,
+    String? imageUrl,
+    double? locationLat,
+    double? locationLng,
+    String? address,
+    required DateTime startDate,
+    DateTime? endDate,
+  }) async {
+    try {
+      // Obtener el usuario actual para created_by
+      final currentUser = _client.auth.currentUser;
+
+      final eventModel = EventModel.forCreate(
+        title: title,
+        description: description,
+        categoryId: categoryId,
+        imageUrl: imageUrl,
+        locationLat: locationLat,
+        locationLng: locationLng,
+        address: address,
+        startDate: startDate,
+        endDate: endDate,
+        createdBy: currentUser?.id,
+      );
+
+      final response = await _client
+          .from('events')
+          .insert(eventModel.toJsonForCreate())
+          .select()
+          .single();
+
+      return EventModel.fromJson(response).toEntity();
+    } on PostgrestException catch (e) {
+      throw EventCreateException(e.message);
+    } catch (e) {
+      throw EventCreateException(e.toString());
+    }
+  }
 }

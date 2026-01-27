@@ -90,4 +90,53 @@ class EventModel {
       createdAt: createdAt,
     );
   }
+
+  /// Crea un EventModel para inserción (sin id ni createdAt).
+  ///
+  /// Usado al crear un nuevo evento donde el servidor genera el ID.
+  factory EventModel.forCreate({
+    required String title,
+    String? description,
+    required String categoryId,
+    String? imageUrl,
+    double? locationLat,
+    double? locationLng,
+    String? address,
+    required DateTime startDate,
+    DateTime? endDate,
+    String? createdBy,
+  }) {
+    return EventModel(
+      id: '',
+      title: title,
+      description: description,
+      categoryId: categoryId,
+      imageUrl: imageUrl,
+      locationLat: locationLat,
+      locationLng: locationLng,
+      address: address,
+      startDate: startDate,
+      endDate: endDate,
+      createdBy: createdBy,
+      createdAt: DateTime.now(),
+    );
+  }
+
+  /// Convierte el modelo a JSON para crear un nuevo evento.
+  ///
+  /// Excluye 'id' y 'created_at' ya que son generados por Supabase.
+  Map<String, dynamic> toJsonForCreate() {
+    return {
+      'title': title,
+      'description': description,
+      'category_id': categoryId,
+      'image_url': imageUrl,
+      'location_lat': locationLat,
+      'location_lng': locationLng,
+      'address': address,
+      'start_date': startDate.toIso8601String(),
+      'end_date': endDate?.toIso8601String(),
+      'created_by': createdBy,
+    };
+  }
 }

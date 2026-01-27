@@ -29,6 +29,9 @@ enum EventsStatus {
   loading,
   loaded,
   error,
+  creating,
+  created,
+  createError,
 }
 
 /// Estado de la pantalla de eventos.
@@ -36,22 +39,30 @@ class EventsState {
   final EventsStatus status;
   final Map<Category, List<Event>> eventsByCategory;
   final String? errorMessage;
+  final String? successMessage;
+  final Event? createdEvent;
 
   const EventsState({
     this.status = EventsStatus.initial,
     this.eventsByCategory = const {},
     this.errorMessage,
+    this.successMessage,
+    this.createdEvent,
   });
 
   EventsState copyWith({
     EventsStatus? status,
     Map<Category, List<Event>>? eventsByCategory,
     String? errorMessage,
+    String? successMessage,
+    Event? createdEvent,
   }) {
     return EventsState(
       status: status ?? this.status,
       eventsByCategory: eventsByCategory ?? this.eventsByCategory,
       errorMessage: errorMessage,
+      successMessage: successMessage,
+      createdEvent: createdEvent,
     );
   }
 
@@ -99,6 +110,64 @@ class EventsNotifier extends StateNotifier<EventsState> {
   /// Recarga los eventos (pull-to-refresh).
   Future<void> refresh() async {
     await loadEventsGroupedByCategory();
+  }
+
+  /// Crea un nuevo evento.
+  Future<void> createEvent({
+    required String title,
+    String? description,
+    required String categoryId,
+    String? imageUrl,
+    double? locationLat,
+    double? locationLng,
+    String? address,
+    required DateTime startDate,
+    DateTime? endDate,
+  }) async {
+    state = state.copyWith(status: EventsStatus.creating);
+
+    try {
+      final event = await _repository.createEvent(
+        title: title,
+        description: description,
+        categoryId: categoryId,
+        imageUrl: imageUrl,
+        locationLat: locationLat,
+        locationLng: locationLng,
+        address: address,
+        startDate: startDate,
+        endDate: endDate,
+      );
+
+      state = state.copyWith(
+        status: EventsStatus.created,
+        createdEvent: event,
+        successMessage: 'Evento creado exitosamente',
+      );
+
+      // Recargar eventos para mostrar el nuevo
+      await loadEventsGroupedByCategory();
+    } on EventException catch (e) {
+      state = state.copyWith(
+        status: EventsStatus.createError,
+        errorMessage: e.userMessage,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        status: EventsStatus.createError,
+        errorMessage: 'Error al crear el evento',
+      );
+    }
+  }
+
+  /// Limpia el estado de éxito/error de creación.
+  void clearCreateState() {
+    state = state.copyWith(
+      status: EventsStatus.loaded,
+      createdEvent: null,
+      successMessage: null,
+      errorMessage: null,
+    );
   }
 }
 

@@ -3,6 +3,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
@@ -50,6 +51,18 @@ class MyApp extends ConsumerWidget {
       // Configuración básica
       title: 'Finding Out',
       debugShowCheckedModeBanner: false,
+
+      // Localización para widgets de Material (DatePicker, TimePicker, etc.)
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('es', 'MX'),
+        Locale('es'),
+      ],
+      locale: const Locale('es', 'MX'),
 
       // Tema centralizado desde AppTheme
       theme: AppTheme.light,

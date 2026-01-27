@@ -75,6 +75,11 @@ class _EventsHomeScreenState extends ConsumerState<EventsHomeScreen> {
         ],
       ),
       body: _buildBody(eventsState),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => context.push(AppRoutes.createEvent),
+        tooltip: 'Crear evento',
+        child: Icon(PhosphorIcons.plus()),
+      ),
     );
   }
 
@@ -87,9 +92,12 @@ class _EventsHomeScreenState extends ConsumerState<EventsHomeScreen> {
         );
 
       case EventsStatus.error:
+      case EventsStatus.createError:
         return _buildError(eventsState.errorMessage);
 
       case EventsStatus.loaded:
+      case EventsStatus.creating:
+      case EventsStatus.created:
         return _buildEventsList(eventsState);
     }
   }
