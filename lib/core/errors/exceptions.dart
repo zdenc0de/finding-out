@@ -157,3 +157,30 @@ class LocationFetchException extends LocationException {
   const LocationFetchException([String? debugInfo])
       : super('No se pudo obtener tu ubicación', debugInfo);
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// EXCEPCIONES DE STORAGE
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// Excepción base para errores relacionados con almacenamiento
+class StorageException extends AppException {
+  const StorageException(super.message, [super.debugInfo]);
+}
+
+/// Error al subir imagen
+class ImageUploadException extends StorageException {
+  const ImageUploadException([String? debugInfo])
+      : super('No se pudo subir la imagen', debugInfo);
+}
+
+/// Imagen demasiado grande
+class ImageTooLargeException extends StorageException {
+  const ImageTooLargeException([String? debugInfo])
+      : super('La imagen es demasiado grande. Máximo 5MB', debugInfo);
+}
+
+/// Formato de imagen inválido
+class InvalidImageFormatException extends StorageException {
+  const InvalidImageFormatException([String? debugInfo])
+      : super('Formato de imagen no válido. Usa JPG, PNG o WebP', debugInfo);
+}

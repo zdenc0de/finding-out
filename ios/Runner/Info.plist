@@ -50,6 +50,11 @@
 	<string>Finding Out necesita acceso a tu ubicación para mostrarte eventos cercanos.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>Finding Out necesita acceso a tu ubicación para mostrarte eventos cercanos.</string>
+	<!-- Permisos de cámara y galería -->
+	<key>NSCameraUsageDescription</key>
+	<string>Finding Out necesita acceso a la cámara para tomar fotos de eventos.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Finding Out necesita acceso a tu galería para seleccionar fotos de eventos.</string>
 	<!-- Deep Links para Supabase Auth -->
 	<key>CFBundleURLTypes</key>
 	<array>

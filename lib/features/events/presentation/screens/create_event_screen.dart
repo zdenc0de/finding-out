@@ -12,6 +12,7 @@ import '../../../../core/utils/validators.dart';
 import '../../domain/entities/category.dart';
 import '../providers/events_provider.dart';
 import '../widgets/address_search_field.dart';
+import '../widgets/image_picker_field.dart';
 
 /// Pantalla para crear un nuevo evento.
 class CreateEventScreen extends ConsumerStatefulWidget {
@@ -27,10 +28,10 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
   // Controllers
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
-  final _imageUrlController = TextEditingController();
 
   // Estado del formulario
   String? _selectedCategoryId;
+  String? _imageUrl;
   DateTime? _startDate;
   TimeOfDay? _startTime;
   DateTime? _endDate;
@@ -43,7 +44,6 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
   void dispose() {
     _titleController.dispose();
     _descriptionController.dispose();
-    _imageUrlController.dispose();
     super.dispose();
   }
 
@@ -144,17 +144,16 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
             ),
             const SizedBox(height: 16),
 
-            // URL de imagen
-            TextFormField(
-              controller: _imageUrlController,
-              decoration: InputDecoration(
-                labelText: 'URL de imagen',
-                hintText: 'https://ejemplo.com/imagen.jpg',
-                prefixIcon: Icon(PhosphorIcons.image()),
-              ),
-              validator: Validators.validateUrl,
-              keyboardType: TextInputType.url,
-              textInputAction: TextInputAction.next,
+            // Imagen del evento
+            Text(
+              'Imagen',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 12),
+            ImagePickerField(
+              onImageUploaded: (url) {
+                setState(() => _imageUrl = url);
+              },
             ),
             const SizedBox(height: 24),
 
@@ -401,9 +400,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
               ? null
               : _descriptionController.text.trim(),
           categoryId: _selectedCategoryId!,
-          imageUrl: _imageUrlController.text.trim().isEmpty
-              ? null
-              : _imageUrlController.text.trim(),
+          imageUrl: _imageUrl,
           locationLat: _locationLat,
           locationLng: _locationLng,
           address: _address,

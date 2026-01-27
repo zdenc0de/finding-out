@@ -12,7 +12,7 @@ void main() {
       'display_order': 1,
     };
 
-    final testModel = CategoryModel(
+    const testModel = CategoryModel(
       id: 'cat-music',
       name: 'Música',
       icon: 'music_note',
