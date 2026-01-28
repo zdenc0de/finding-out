@@ -77,7 +77,12 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
     });
 
     return Scaffold(
+      
       appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(PhosphorIcons.arrowLeft()),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
         title: const Text('Crear Evento'),
         centerTitle: true,
       ),
@@ -119,9 +124,11 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
               decoration: InputDecoration(
                 labelText: 'Categoría *',
                 prefixIcon: Icon(PhosphorIcons.tag()),
+                suffixIcon: Icon(PhosphorIcons.caretDown()),
               ),
               items: categories.map((category) {
                 return DropdownMenuItem(
+                  
                   value: category.id,
                   child: Row(
                     children: [
