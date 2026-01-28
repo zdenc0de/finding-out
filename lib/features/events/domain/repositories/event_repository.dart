@@ -38,4 +38,7 @@ abstract class EventRepository {
     required DateTime startDate,
     DateTime? endDate,
   });
+
+  /// Obtiene el conteo de eventos creados por un usuario.
+  Future<int> getUserEventsCount(String userId);
 }

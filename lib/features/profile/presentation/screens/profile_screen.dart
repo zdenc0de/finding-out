@@ -10,6 +10,7 @@ import '../../../../core/config/router_config.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/string_utils.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../providers/profile_provider.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -18,6 +19,7 @@ class ProfileScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authNotifierProvider);
     final user = authState.user;
+    final statsAsync = ref.watch(userStatsProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -103,19 +105,41 @@ class ProfileScreen extends ConsumerWidget {
               const SizedBox(height: 24),
 
               // ─────────────────────────────────────────────────────────────
-              // STATS: Estadísticas (placeholder para el futuro)
+              // STATS: Estadísticas
               // ─────────────────────────────────────────────────────────────
               _buildSectionTitle(context, 'Estadísticas'),
               const SizedBox(height: 12),
-              _buildInfoCard(
-                context,
-                children: [
-                  _buildStatRow(context, 'Eventos asistidos', '0'),
-                  const Divider(height: 1),
-                  _buildStatRow(context, 'Eventos creados', '0'),
-                  const Divider(height: 1),
-                  _buildStatRow(context, 'Lugares favoritos', '0'),
-                ],
+              statsAsync.when(
+                data: (stats) => _buildInfoCard(
+                  context,
+                  children: [
+                    _buildStatRow(context, 'Eventos asistidos', '${stats.eventsAttended}'),
+                    const Divider(height: 1),
+                    _buildStatRow(context, 'Eventos creados', '${stats.eventsCreated}'),
+                    const Divider(height: 1),
+                    _buildStatRow(context, 'Lugares favoritos', '${stats.favoritePlaces}'),
+                  ],
+                ),
+                loading: () => _buildInfoCard(
+                  context,
+                  children: [
+                    _buildStatRow(context, 'Eventos asistidos', '-'),
+                    const Divider(height: 1),
+                    _buildStatRow(context, 'Eventos creados', '-'),
+                    const Divider(height: 1),
+                    _buildStatRow(context, 'Lugares favoritos', '-'),
+                  ],
+                ),
+                error: (_, __) => _buildInfoCard(
+                  context,
+                  children: [
+                    _buildStatRow(context, 'Eventos asistidos', '0'),
+                    const Divider(height: 1),
+                    _buildStatRow(context, 'Eventos creados', '0'),
+                    const Divider(height: 1),
+                    _buildStatRow(context, 'Lugares favoritos', '0'),
+                  ],
+                ),
               ),
 
               const SizedBox(height: 32),

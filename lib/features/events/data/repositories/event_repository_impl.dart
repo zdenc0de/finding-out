@@ -155,4 +155,20 @@ class EventRepositoryImpl implements EventRepository {
       throw EventCreateException(e.toString());
     }
   }
+
+  @override
+  Future<int> getUserEventsCount(String userId) async {
+    try {
+      final response = await _client
+          .from('events')
+          .select()
+          .eq('created_by', userId);
+
+      return (response as List<dynamic>).length;
+    } on PostgrestException {
+      return 0;
+    } catch (e) {
+      return 0;
+    }
+  }
 }
