@@ -77,7 +77,6 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
     });
 
     return Scaffold(
-      
       appBar: AppBar(
         leading: IconButton(
           icon: Icon(PhosphorIcons.arrowLeft()),
@@ -124,11 +123,9 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
               decoration: InputDecoration(
                 labelText: 'Categoría *',
                 prefixIcon: Icon(PhosphorIcons.tag()),
-                suffixIcon: Icon(PhosphorIcons.caretDown()),
               ),
               items: categories.map((category) {
                 return DropdownMenuItem(
-                  
                   value: category.id,
                   child: Row(
                     children: [
@@ -261,6 +258,13 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
     );
   }
 
+  String _formatTime(TimeOfDay time) {
+    final hour = time.hourOfPeriod == 0 ? 12 : time.hourOfPeriod;
+    final minute = time.minute.toString().padLeft(2, '0');
+    final period = time.period == DayPeriod.am ? 'AM' : 'PM';
+    return '$hour:$minute $period';
+  }
+
   Widget _buildDateTimeRow({
     required String label,
     required DateTime? date,
@@ -295,9 +299,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
             onPressed: onTimeTap,
             icon: Icon(PhosphorIcons.clock(), size: 18),
             label: Text(
-              time != null
-                  ? '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}'
-                  : 'Hora',
+              time != null ? _formatTime(time) : 'Hora',
             ),
           ),
         ),
@@ -317,6 +319,22 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
       firstDate: now,
       lastDate: now.add(const Duration(days: 365 * 2)),
       locale: const Locale('es', 'MX'),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            datePickerTheme: DatePickerThemeData(
+              headerHelpStyle: Theme.of(context).textTheme.labelLarge,
+              dayStyle: Theme.of(context).textTheme.bodyMedium,
+            ),
+            iconButtonTheme: IconButtonThemeData(
+              style: IconButton.styleFrom(
+                foregroundColor: Theme.of(context).colorScheme.primary,
+              ),
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
 
     if (picked != null) {
@@ -338,6 +356,17 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
     final picked = await showTimePicker(
       context: context,
       initialTime: initialTime,
+      initialEntryMode: TimePickerEntryMode.inputOnly,
+      builder: (context, child) {
+        return Localizations.override(
+          context: context,
+          locale: const Locale('en', 'US'),
+          child: MediaQuery(
+            data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: false),
+            child: child!,
+          ),
+        );
+      },
     );
 
     if (picked != null) {

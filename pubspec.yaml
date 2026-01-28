@@ -52,5 +52,6 @@ dev_dependencies:
   mockito: ^5.4.4         # Para mocks en tests
 
 flutter:
+  uses-material-design: true
   assets:
     - .env
