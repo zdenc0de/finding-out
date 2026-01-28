@@ -193,7 +193,9 @@ final routerProvider = Provider<GoRouter>((ref) {
     // ═══════════════════════════════════════════════════════════════════
     redirect: (context, state) {
       // Obtenemos el estado actual de autenticación
-      final isAuthenticated = authState.status == AuthStatus.authenticated;
+      // profileUpdated también cuenta como autenticado (usuario sigue logueado)
+      final isAuthenticated = authState.status == AuthStatus.authenticated ||
+          authState.status == AuthStatus.profileUpdated;
       final isLoading = authState.status == AuthStatus.loading ||
           authState.status == AuthStatus.initial;
       final isPasswordRecovery = authState.status == AuthStatus.passwordRecoveryMode;

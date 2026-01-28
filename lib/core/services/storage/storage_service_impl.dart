@@ -14,7 +14,10 @@ class StorageServiceImpl implements StorageService {
   final SupabaseClient _client;
 
   /// Nombre del bucket para imágenes de eventos
-  static const String _bucketName = 'event-images';
+  static const String _eventsBucketName = 'event-images';
+
+  /// Nombre del bucket para avatares de perfil
+  static const String _avatarsBucketName = 'profile_images';
 
   /// Tamaño máximo de archivo: 5MB
   static const int _maxFileSizeBytes = 5 * 1024 * 1024;
@@ -50,7 +53,7 @@ class StorageServiceImpl implements StorageService {
 
     try {
       // Subir archivo a Supabase Storage
-      await _client.storage.from(_bucketName).upload(
+      await _client.storage.from(_eventsBucketName).upload(
             filePath,
             imageFile,
             fileOptions: FileOptions(
@@ -69,7 +72,7 @@ class StorageServiceImpl implements StorageService {
   @override
   Future<void> deleteImage(String imagePath) async {
     try {
-      await _client.storage.from(_bucketName).remove([imagePath]);
+      await _client.storage.from(_eventsBucketName).remove([imagePath]);
     } catch (e) {
       throw ImageUploadException(e.toString());
     }
@@ -77,7 +80,49 @@ class StorageServiceImpl implements StorageService {
 
   @override
   String getPublicUrl(String path) {
-    return _client.storage.from(_bucketName).getPublicUrl(path);
+    return _client.storage.from(_eventsBucketName).getPublicUrl(path);
+  }
+
+  @override
+  Future<String> uploadProfileImage(File imageFile, String userId) async {
+    // Validar que el archivo existe
+    if (!await imageFile.exists()) {
+      throw const ImageUploadException('El archivo no existe');
+    }
+
+    // Validar tamaño del archivo
+    final fileSize = await imageFile.length();
+    if (fileSize > _maxFileSizeBytes) {
+      throw const ImageTooLargeException();
+    }
+
+    // Validar extensión del archivo
+    final extension = _getFileExtension(imageFile.path);
+    if (!_allowedExtensions.contains(extension.toLowerCase())) {
+      throw const InvalidImageFormatException();
+    }
+
+    // Usar nombre fijo 'avatar' para sobrescribir el anterior
+    final fileName = 'avatar.$extension';
+    final filePath = '$userId/$fileName';
+
+    try {
+      // Subir archivo a Supabase Storage (upsert: true para sobrescribir)
+      await _client.storage.from(_avatarsBucketName).upload(
+            filePath,
+            imageFile,
+            fileOptions: FileOptions(
+              contentType: _getContentType(extension),
+              upsert: true,
+            ),
+          );
+
+      // Retornar URL pública con timestamp para evitar cache
+      final publicUrl = _client.storage.from(_avatarsBucketName).getPublicUrl(filePath);
+      return '$publicUrl?t=${DateTime.now().millisecondsSinceEpoch}';
+    } catch (e) {
+      throw ImageUploadException(e.toString());
+    }
   }
 
   /// Obtiene la extensión de un archivo.

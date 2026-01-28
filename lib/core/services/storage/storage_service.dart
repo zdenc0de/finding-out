@@ -28,4 +28,13 @@ abstract class StorageService {
   ///
   /// [path] - Ruta del archivo en Storage
   String getPublicUrl(String path);
+
+  /// Sube una imagen de perfil (avatar) a Storage.
+  ///
+  /// [imageFile] - Archivo de imagen a subir
+  /// [userId] - ID del usuario
+  ///
+  /// Retorna la URL pública de la imagen subida.
+  /// Sobrescribe el avatar anterior si existe.
+  Future<String> uploadProfileImage(File imageFile, String userId);
 }

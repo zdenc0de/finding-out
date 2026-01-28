@@ -8,9 +8,9 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../../../core/config/router_config.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/utils/string_utils.dart';
 import '../../../../core/utils/validators.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../widgets/avatar_picker_field.dart';
 
 class EditProfileScreen extends ConsumerStatefulWidget {
   const EditProfileScreen({super.key});
@@ -22,7 +22,7 @@ class EditProfileScreen extends ConsumerStatefulWidget {
 class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
-  final _avatarUrlController = TextEditingController();
+  String? _avatarUrl;
   bool _hasChanges = false;
 
   @override
@@ -39,33 +39,38 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     final user = ref.read(authNotifierProvider).user;
     if (user != null) {
       _nameController.text = user.displayName ?? '';
-      _avatarUrlController.text = user.avatarUrl ?? '';
+      _avatarUrl = user.avatarUrl;
     }
   }
 
   @override
   void dispose() {
     _nameController.dispose();
-    _avatarUrlController.dispose();
     super.dispose();
   }
 
   void _onFieldChanged() {
     final user = ref.read(authNotifierProvider).user;
     final nameChanged = _nameController.text.trim() != (user?.displayName ?? '');
-    final avatarChanged = _avatarUrlController.text.trim() != (user?.avatarUrl ?? '');
+    final avatarChanged = _avatarUrl != user?.avatarUrl;
     setState(() => _hasChanges = nameChanged || avatarChanged);
+  }
+
+  void _onAvatarUploaded(String? url) {
+    setState(() {
+      _avatarUrl = url;
+    });
+    _onFieldChanged();
   }
 
   Future<void> _handleSave() async {
     if (!_formKey.currentState!.validate()) return;
 
     final name = _nameController.text.trim();
-    final avatarUrl = _avatarUrlController.text.trim();
 
     await ref.read(authNotifierProvider.notifier).updateProfile(
           displayName: name.isNotEmpty ? name : null,
-          avatarUrl: avatarUrl.isNotEmpty ? avatarUrl : null,
+          avatarUrl: _avatarUrl,
         );
   }
 
@@ -121,8 +126,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                     'Guardar',
                     style: TextStyle(
                       color: _hasChanges
-                          ? Theme.of(context).colorScheme.primary
-                          : Theme.of(context).colorScheme.onSurfaceVariant,
+                          ? Theme.of(context).colorScheme.secondary
+                          : Theme.of(context).colorScheme.secondary,
                     ),
                   ),
           ),
@@ -136,54 +141,13 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Avatar preview
-                Center(
-                  child: Stack(
-                    children: [
-                      CircleAvatar(
-                        radius: 50,
-                        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                        backgroundImage: _avatarUrlController.text.isNotEmpty
-                            ? NetworkImage(_avatarUrlController.text)
-                            : (user?.avatarUrl != null
-                                ? NetworkImage(user!.avatarUrl!)
-                                : null),
-                        onBackgroundImageError: (_avatarUrlController.text.isNotEmpty || user?.avatarUrl != null)
-                            ? (_, __) {}
-                            : null,
-                        child: (_avatarUrlController.text.isEmpty && user?.avatarUrl == null)
-                            ? Text(
-                                StringUtils.getInitials(
-                                  _nameController.text.isNotEmpty
-                                      ? _nameController.text
-                                      : user?.email,
-                                ),
-                                style: TextStyle(
-                                  fontSize: 36,
-                                  fontWeight: FontWeight.bold,
-                                  color: Theme.of(context).colorScheme.primary,
-                                ),
-                              )
-                            : null,
-                      ),
-                      Positioned(
-                        bottom: 0,
-                        right: 0,
-                        child: Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.primary,
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            PhosphorIcons.pencilSimple(),
-                            size: 16,
-                            color: Theme.of(context).colorScheme.onPrimary,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                // Avatar picker
+                AvatarPickerField(
+                  initialImageUrl: user?.avatarUrl,
+                  userName: _nameController.text.isNotEmpty ? _nameController.text : user?.displayName,
+                  userEmail: user?.email,
+                  onImageUploaded: _onAvatarUploaded,
+                  radius: 50,
                 ),
                 const SizedBox(height: 32),
                 // Campo nombre
@@ -199,42 +163,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                   onChanged: (_) => _onFieldChanged(),
                   validator: Validators.validateDisplayName,
                 ),
-                const SizedBox(height: 16),
-                // Campo URL avatar
-                TextFormField(
-                  controller: _avatarUrlController,
-                  keyboardType: TextInputType.url,
-                  textInputAction: TextInputAction.done,
-                  onFieldSubmitted: (_) => _hasChanges ? _handleSave() : null,
-                  decoration: InputDecoration(
-                    labelText: 'URL de foto de perfil',
-                    prefixIcon: Icon(PhosphorIcons.link()),
-                    hintText: 'https://ejemplo.com/foto.jpg',
-                  ),
-                  onChanged: (_) => _onFieldChanged(), // _onFieldChanged ya hace setState
-                  validator: Validators.validateUrl,
-                ),
-                const SizedBox(height: 8),
-                // Nota sobre URL
-                Row(
-                  children: [
-                    Icon(
-                      PhosphorIcons.info(),
-                      size: 14,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Puedes usar una URL de imagen de internet',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Theme.of(context).colorScheme.onSurfaceVariant,
-                            ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 24),
                 // Email (solo lectura)
                 TextFormField(
                   initialValue: user?.email ?? '',
