@@ -6,10 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
-import '../../../../core/config/router_config.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/utils/string_utils.dart';
-import '../../../auth/presentation/providers/auth_provider.dart';
 import '../providers/events_provider.dart';
 import '../widgets/category_section.dart';
 
@@ -36,49 +33,93 @@ class _EventsHomeScreenState extends ConsumerState<EventsHomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(authNotifierProvider);
     final eventsState = ref.watch(eventsNotifierProvider);
-    final user = authState.user;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Finding Out'),
         centerTitle: true,
-        leading: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: GestureDetector(
-            onTap: () => context.go(AppRoutes.profile),
-            child: CircleAvatar(
-              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-              backgroundImage: user?.avatarUrl != null
-                  ? NetworkImage(user!.avatarUrl!)
-                  : null,
-              child: user?.avatarUrl == null
-                  ? Text(
-                      StringUtils.getInitials(user?.displayName ?? user?.email),
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                    )
-                  : null,
-            ),
-          ),
-        ),
         actions: [
           IconButton(
-            icon: Icon(PhosphorIcons.signOut()),
-            tooltip: 'Cerrar sesión',
-            onPressed: () => _showLogoutDialog(context, ref),
+            icon: Icon(PhosphorIcons.magnifyingGlass()),
+            tooltip: 'Buscar eventos',
+            onPressed: () => _showSearchSheet(context),
           ),
         ],
       ),
       body: _buildBody(eventsState),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => context.push(AppRoutes.createEvent),
-        tooltip: 'Crear evento',
-        child: Icon(PhosphorIcons.plus()),
+    );
+  }
+
+  void _showSearchSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.9,
+        minChildSize: 0.5,
+        maxChildSize: 0.95,
+        builder: (context, scrollController) => Container(
+          decoration: const BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: Column(
+            children: [
+              // Handle
+              Container(
+                margin: const EdgeInsets.only(top: 12),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.outline,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              // Header
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: TextField(
+                  autofocus: true,
+                  decoration: InputDecoration(
+                    hintText: 'Buscar eventos...',
+                    prefixIcon: Icon(PhosphorIcons.magnifyingGlass()),
+                    suffixIcon: IconButton(
+                      icon: Icon(PhosphorIcons.x()),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ),
+                  onChanged: (value) {
+                    // TODO: Implementar búsqueda
+                  },
+                ),
+              ),
+              // Placeholder
+              Expanded(
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        PhosphorIcons.magnifyingGlass(PhosphorIconsStyle.duotone),
+                        size: 64,
+                        color: AppColors.onSurfaceVariant.withAlpha(128),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Busca eventos por nombre',
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                              color: AppColors.onSurfaceVariant,
+                            ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -245,29 +286,6 @@ class _EventsHomeScreenState extends ConsumerState<EventsHomeScreen> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  void _showLogoutDialog(BuildContext context, WidgetRef ref) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Cerrar sesión'),
-        content: const Text('¿Estás seguro de que quieres cerrar sesión?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancelar'),
-          ),
-          FilledButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              ref.read(authNotifierProvider.notifier).signOut();
-            },
-            child: const Text('Cerrar sesión'),
-          ),
-        ],
       ),
     );
   }

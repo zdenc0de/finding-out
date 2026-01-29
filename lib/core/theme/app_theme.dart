@@ -1,5 +1,6 @@
 // lib/core/theme/app_theme.dart
 // Tema principal de la aplicación Finding Out
+// Estilo: Santorini - Minimalista, elegante, mediterráneo
 
 import 'package:flutter/material.dart';
 
@@ -7,45 +8,49 @@ import 'app_colors.dart';
 
 /// Tema centralizado de la aplicación
 ///
+/// Estilo visual inspirado en Santorini:
+/// - Tipografía: Georgia para títulos grandes, sistema para cuerpo
+/// - Colores: Azul vibrante sobre blanco limpio
+/// - Espaciado: Generoso, minimalista
+/// - Bordes: Suaves, redondeados
+///
 /// Uso en main.dart:
 /// ```dart
 /// MaterialApp.router(
 ///   theme: AppTheme.light,
-///   // darkTheme: AppTheme.dark, // Para futuro
 /// )
 /// ```
 abstract class AppTheme {
   // ═══════════════════════════════════════════════════════════════════════════
-  // TEMA CLARO (Light Theme)
+  // TEMA CLARO (Light Theme) - Estilo Santorini
   // ═══════════════════════════════════════════════════════════════════════════
   static ThemeData get light {
     return ThemeData(
       useMaterial3: true,
 
       // ─────────────────────────────────────────────────────────────────────
-      // COLOR SCHEME
-      // Define todos los colores semánticos que Material 3 usa automáticamente
+      // COLOR SCHEME - Santorini Blue
       // ─────────────────────────────────────────────────────────────────────
       colorScheme: const ColorScheme.light(
-        // Colores primarios
+        // Colores primarios - Azul vibrante
         primary: AppColors.primary,
         onPrimary: AppColors.onPrimary,
-        primaryContainer: AppColors.primaryLight,
-        onPrimaryContainer: AppColors.primaryDark,
+        primaryContainer: AppColors.primaryContainer,
+        onPrimaryContainer: AppColors.onPrimaryContainer,
 
-        // Colores secundarios
+        // Colores secundarios - Gris elegante
         secondary: AppColors.secondary,
         onSecondary: AppColors.onSecondary,
-        secondaryContainer: AppColors.secondaryLight,
-        onSecondaryContainer: AppColors.onSecondary,
+        secondaryContainer: AppColors.secondaryContainer,
+        onSecondaryContainer: AppColors.onSecondaryContainer,
 
-        // Colores terciarios
+        // Colores terciarios - Coral
         tertiary: AppColors.tertiary,
         onTertiary: AppColors.onTertiary,
-        tertiaryContainer: AppColors.tertiaryLight,
-        onTertiaryContainer: AppColors.tertiaryDark,
+        tertiaryContainer: AppColors.tertiaryContainer,
+        onTertiaryContainer: AppColors.onTertiaryContainer,
 
-        // Colores de superficie
+        // Colores de superficie - Blancos limpios
         surface: AppColors.surface,
         onSurface: AppColors.onSurface,
         surfaceContainerHighest: AppColors.surfaceVariant,
@@ -63,28 +68,145 @@ abstract class AppTheme {
       ),
 
       // ─────────────────────────────────────────────────────────────────────
-      // SCAFFOLD
+      // TIPOGRAFÍA - Georgia para títulos, sistema para cuerpo
       // ─────────────────────────────────────────────────────────────────────
-      scaffoldBackgroundColor: AppColors.background,
+      textTheme: const TextTheme(
+        // Display - Georgia, grande y elegante
+        displayLarge: TextStyle(
+          fontFamily: 'Georgia',
+          fontSize: 57,
+          fontWeight: FontWeight.w400,
+          letterSpacing: -1.5,
+          color: AppColors.onSurface,
+        ),
+        displayMedium: TextStyle(
+          fontFamily: 'Georgia',
+          fontSize: 45,
+          fontWeight: FontWeight.w400,
+          letterSpacing: -0.5,
+          color: AppColors.onSurface,
+        ),
+        displaySmall: TextStyle(
+          fontFamily: 'Georgia',
+          fontSize: 36,
+          fontWeight: FontWeight.w400,
+          letterSpacing: 0,
+          color: AppColors.onSurface,
+        ),
 
-      // ─────────────────────────────────────────────────────────────────────
-      // APP BAR
-      // ─────────────────────────────────────────────────────────────────────
-      appBarTheme: const AppBarTheme(
-        elevation: 0,
-        centerTitle: true,
-        backgroundColor: AppColors.primary,
-        foregroundColor: AppColors.onPrimary,
-        iconTheme: IconThemeData(color: AppColors.onPrimary),
-        titleTextStyle: TextStyle(
-          color: AppColors.onPrimary,
-          fontSize: 20,
+        // Headline - Georgia para impacto
+        headlineLarge: TextStyle(
+          fontFamily: 'Georgia',
+          fontSize: 32,
+          fontWeight: FontWeight.w400,
+          letterSpacing: -0.5,
+          color: AppColors.onSurface,
+        ),
+        headlineMedium: TextStyle(
+          fontFamily: 'Georgia',
+          fontSize: 28,
+          fontWeight: FontWeight.w400,
+          letterSpacing: 0,
+          color: AppColors.onSurface,
+        ),
+        headlineSmall: TextStyle(
+          fontFamily: 'Georgia',
+          fontSize: 24,
+          fontWeight: FontWeight.w400,
+          letterSpacing: 0,
+          color: AppColors.onSurface,
+        ),
+
+        // Title - Sistema, clean
+        titleLarge: TextStyle(
+          fontSize: 22,
           fontWeight: FontWeight.w600,
+          letterSpacing: 0,
+          color: AppColors.onSurface,
+        ),
+        titleMedium: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 0.15,
+          color: AppColors.onSurface,
+        ),
+        titleSmall: TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 0.1,
+          color: AppColors.onSurface,
+        ),
+
+        // Body - Sistema, legible
+        bodyLarge: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w400,
+          letterSpacing: 0.5,
+          height: 1.5,
+          color: AppColors.onSurface,
+        ),
+        bodyMedium: TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w400,
+          letterSpacing: 0.25,
+          height: 1.5,
+          color: AppColors.onSurface,
+        ),
+        bodySmall: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w400,
+          letterSpacing: 0.4,
+          height: 1.4,
+          color: AppColors.onSurfaceVariant,
+        ),
+
+        // Label
+        labelLarge: TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 0.1,
+          color: AppColors.onSurface,
+        ),
+        labelMedium: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+          letterSpacing: 0.5,
+          color: AppColors.onSurfaceVariant,
+        ),
+        labelSmall: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w500,
+          letterSpacing: 0.5,
+          color: AppColors.onSurfaceVariant,
         ),
       ),
 
       // ─────────────────────────────────────────────────────────────────────
-      // ELEVATED BUTTON (Botones principales)
+      // SCAFFOLD - Fondo blanco limpio
+      // ─────────────────────────────────────────────────────────────────────
+      scaffoldBackgroundColor: AppColors.background,
+
+      // ─────────────────────────────────────────────────────────────────────
+      // APP BAR - Transparente con texto oscuro para look moderno
+      // ─────────────────────────────────────────────────────────────────────
+      appBarTheme: const AppBarTheme(
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        centerTitle: true,
+        backgroundColor: Colors.transparent,
+        foregroundColor: AppColors.onSurface,
+        iconTheme: IconThemeData(color: AppColors.onSurface),
+        titleTextStyle: TextStyle(
+          fontFamily: 'Georgia',
+          color: AppColors.onSurface,
+          fontSize: 20,
+          fontWeight: FontWeight.w400,
+          letterSpacing: -0.5,
+        ),
+      ),
+
+      // ─────────────────────────────────────────────────────────────────────
+      // ELEVATED BUTTON - Azul vibrante, bordes suaves
       // ─────────────────────────────────────────────────────────────────────
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -92,20 +214,21 @@ abstract class AppTheme {
           foregroundColor: AppColors.onPrimary,
           disabledBackgroundColor: AppColors.disabled,
           disabledForegroundColor: AppColors.onDisabled,
-          elevation: 2,
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+          elevation: 0,
+          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
           textStyle: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
+            letterSpacing: 0.5,
           ),
         ),
       ),
 
       // ─────────────────────────────────────────────────────────────────────
-      // FILLED BUTTON (Botones de acción secundaria)
+      // FILLED BUTTON
       // ─────────────────────────────────────────────────────────────────────
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
@@ -113,7 +236,7 @@ abstract class AppTheme {
           foregroundColor: AppColors.onPrimary,
           disabledBackgroundColor: AppColors.disabled,
           disabledForegroundColor: AppColors.onDisabled,
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
@@ -121,13 +244,13 @@ abstract class AppTheme {
       ),
 
       // ─────────────────────────────────────────────────────────────────────
-      // OUTLINED BUTTON
+      // OUTLINED BUTTON - Borde azul, fondo transparente
       // ─────────────────────────────────────────────────────────────────────
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.primary,
           side: const BorderSide(color: AppColors.primary, width: 1.5),
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
@@ -135,7 +258,7 @@ abstract class AppTheme {
       ),
 
       // ─────────────────────────────────────────────────────────────────────
-      // TEXT BUTTON (Links y acciones terciarias)
+      // TEXT BUTTON - Azul, sin fondo
       // ─────────────────────────────────────────────────────────────────────
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
@@ -152,29 +275,29 @@ abstract class AppTheme {
       // ─────────────────────────────────────────────────────────────────────
       iconButtonTheme: IconButtonThemeData(
         style: IconButton.styleFrom(
-          foregroundColor: AppColors.primary,
+          foregroundColor: AppColors.onSurface,
         ),
       ),
 
       // ─────────────────────────────────────────────────────────────────────
-      // FLOATING ACTION BUTTON
+      // FLOATING ACTION BUTTON - Azul primario
       // ─────────────────────────────────────────────────────────────────────
       floatingActionButtonTheme: const FloatingActionButtonThemeData(
-        backgroundColor: AppColors.tertiary,
-        foregroundColor: AppColors.onTertiary,
+        backgroundColor: AppColors.primary,
+        foregroundColor: AppColors.onPrimary,
         elevation: 4,
+        shape: CircleBorder(),
       ),
 
       // ─────────────────────────────────────────────────────────────────────
-      // INPUT DECORATION (TextFormField, TextField)
+      // INPUT DECORATION - Minimalista, bordes sutiles
       // ─────────────────────────────────────────────────────────────────────
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.inputFill,
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
 
-        // Bordes
+        // Bordes suaves
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: AppColors.inputBorder),
@@ -185,8 +308,7 @@ abstract class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide:
-              const BorderSide(color: AppColors.inputBorderFocused, width: 2),
+          borderSide: const BorderSide(color: AppColors.inputBorderFocused, width: 2),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -194,8 +316,7 @@ abstract class AppTheme {
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide:
-              const BorderSide(color: AppColors.inputBorderError, width: 2),
+          borderSide: const BorderSide(color: AppColors.inputBorderError, width: 2),
         ),
 
         // Colores de texto
@@ -209,14 +330,15 @@ abstract class AppTheme {
       ),
 
       // ─────────────────────────────────────────────────────────────────────
-      // CARD
+      // CARD - Sombra sutil, bordes redondeados
       // ─────────────────────────────────────────────────────────────────────
       cardTheme: CardThemeData(
         color: AppColors.surface,
-        elevation: 2,
+        elevation: 0,
         shadowColor: AppColors.shadow,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: AppColors.outline, width: 1),
         ),
         margin: const EdgeInsets.all(8),
       ),
@@ -228,16 +350,18 @@ abstract class AppTheme {
         backgroundColor: AppColors.surface,
         elevation: 8,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(24),
         ),
         titleTextStyle: const TextStyle(
+          fontFamily: 'Georgia',
           color: AppColors.onSurface,
-          fontSize: 20,
-          fontWeight: FontWeight.w600,
+          fontSize: 24,
+          fontWeight: FontWeight.w400,
         ),
         contentTextStyle: const TextStyle(
           color: AppColors.onSurfaceVariant,
           fontSize: 16,
+          height: 1.5,
         ),
       ),
 
@@ -267,8 +391,8 @@ abstract class AppTheme {
       // ─────────────────────────────────────────────────────────────────────
       progressIndicatorTheme: const ProgressIndicatorThemeData(
         color: AppColors.primary,
-        linearTrackColor: AppColors.secondary,
-        circularTrackColor: AppColors.secondary,
+        linearTrackColor: AppColors.primaryContainer,
+        circularTrackColor: AppColors.primaryContainer,
       ),
 
       // ─────────────────────────────────────────────────────────────────────
@@ -276,7 +400,7 @@ abstract class AppTheme {
       // ─────────────────────────────────────────────────────────────────────
       chipTheme: ChipThemeData(
         backgroundColor: AppColors.surfaceVariant,
-        selectedColor: AppColors.primaryLight,
+        selectedColor: AppColors.primaryContainer,
         labelStyle: const TextStyle(color: AppColors.onSurface),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
@@ -291,7 +415,7 @@ abstract class AppTheme {
         selectedItemColor: AppColors.primary,
         unselectedItemColor: AppColors.onSurfaceVariant,
         type: BottomNavigationBarType.fixed,
-        elevation: 8,
+        elevation: 0,
       ),
 
       // ─────────────────────────────────────────────────────────────────────
@@ -299,7 +423,8 @@ abstract class AppTheme {
       // ─────────────────────────────────────────────────────────────────────
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: AppColors.surface,
-        indicatorColor: AppColors.primaryLight,
+        indicatorColor: AppColors.primaryContainer,
+        elevation: 0,
         iconTheme: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
             return const IconThemeData(color: AppColors.primary);
@@ -311,10 +436,25 @@ abstract class AppTheme {
             return const TextStyle(
               color: AppColors.primary,
               fontWeight: FontWeight.w600,
+              fontSize: 12,
             );
           }
-          return const TextStyle(color: AppColors.onSurfaceVariant);
+          return const TextStyle(
+            color: AppColors.onSurfaceVariant,
+            fontSize: 12,
+          );
         }),
+      ),
+
+      // ─────────────────────────────────────────────────────────────────────
+      // BOTTOM SHEET
+      // ─────────────────────────────────────────────────────────────────────
+      bottomSheetTheme: const BottomSheetThemeData(
+        backgroundColor: AppColors.surface,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
       ),
     );
   }

@@ -1,14 +1,15 @@
 // lib/core/theme/app_colors.dart
 // Paleta de colores de la aplicación Finding Out
+// Inspirado en el estilo Santorini - Minimalista, vibrante, elegante
 
 import 'package:flutter/material.dart';
 
 /// Paleta de colores centralizada de la aplicación
 ///
-/// Colores principales:
-/// - YInMn Blue (#2E4C8C) - Primario
-/// - Old Lace (#FFF3E1) - Secundario/Superficies
-/// - Red (#FA2D1A) - Acento/Terciario
+/// Estilo: Santorini - Mediterráneo moderno
+/// - Azul vibrante (#2B4CFF) - Primario
+/// - Blanco limpio - Superficies
+/// - Gris suave - Textos secundarios
 ///
 /// Uso:
 /// ```dart
@@ -17,124 +18,123 @@ import 'package:flutter/material.dart';
 /// ```
 abstract class AppColors {
   // ═══════════════════════════════════════════════════════════════════════════
-  // COLORES PRINCIPALES
+  // COLORES PRINCIPALES - Santorini Blue
   // ═══════════════════════════════════════════════════════════════════════════
 
-  /// YInMn Blue - Color primario
-  /// Uso: Botones principales, AppBar, links, elementos de acción
-  static const Color primary = Color(0xFF2E4C8C);
+  /// Santorini Blue - Color primario vibrante
+  /// Uso: Botones principales, links, elementos de acción, acentos
+  static const Color primary = Color(0xFF2B4CFF);
 
   /// Variantes del primario
-  static const Color primaryLight = Color(0xFF5A75B0);
-  static const Color primaryDark = Color(0xFF1E3366);
-  static const Color primaryContainer = Color(0xFFD4DFEF);
-  static const Color onPrimaryContainer = Color(0xFF1E3366);
+  static const Color primaryLight = Color(0xFF5A72FF);
+  static const Color primaryDark = Color(0xFF1A3AD4);
+  static const Color primaryContainer = Color(0xFFE8ECFF);
+  static const Color onPrimaryContainer = Color(0xFF1A3AD4);
 
-  /// Old Lace - Color secundario
-  /// Uso: Fondos, superficies, cards, contenedores
-  static const Color secondary = Color(0xFFFFF3E1);
+  /// Color secundario - Gris neutro elegante
+  /// Uso: Textos secundarios, bordes sutiles
+  static const Color secondary = Color(0xFF6B7280);
 
   /// Variantes del secundario
-  static const Color secondaryLight = Color(0xFFFFFAF5);
-  static const Color secondaryDark = Color(0xFFE8D9C5);
-  static const Color secondaryContainer = Color(0xFFFFF8EE);
-  static const Color onSecondaryContainer = Color(0xFF4A3D2D);
+  static const Color secondaryLight = Color(0xFF9CA3AF);
+  static const Color secondaryDark = Color(0xFF4B5563);
+  static const Color secondaryContainer = Color(0xFFF3F4F6);
+  static const Color onSecondaryContainer = Color(0xFF374151);
 
-  /// Red - Color terciario/acento
-  /// Uso: Badges, notificaciones, elementos destacados, CTAs secundarios
-  static const Color tertiary = Color(0xFFFA2D1A);
+  /// Color terciario/acento - Coral vibrante
+  /// Uso: Badges, notificaciones, CTAs destacados
+  static const Color tertiary = Color(0xFFFF6B5A);
 
   /// Variantes del terciario
-  static const Color tertiaryLight = Color(0xFFFF6B5A);
-  static const Color tertiaryDark = Color(0xFFC41F10);
-  static const Color tertiaryContainer = Color(0xFFFFDAD6);
-  static const Color onTertiaryContainer = Color(0xFF410003);
+  static const Color tertiaryLight = Color(0xFFFF9A8F);
+  static const Color tertiaryDark = Color(0xFFE54A3A);
+  static const Color tertiaryContainer = Color(0xFFFFEBE9);
+  static const Color onTertiaryContainer = Color(0xFF7F2318);
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // COLORES DE SUPERFICIE
+  // COLORES DE SUPERFICIE - Blancos y grises limpios
   // ═══════════════════════════════════════════════════════════════════════════
 
-  /// Fondo principal de la aplicación (Old Lace claro)
-  static const Color background = Color(0xFFFFFAF5);
+  /// Fondo principal - Blanco puro para máxima limpieza
+  static const Color background = Color(0xFFFFFFFF);
 
-  /// Superficie de cards y contenedores elevados
+  /// Superficie de cards y contenedores
   static const Color surface = Color(0xFFFFFFFF);
 
-  /// Superficie con énfasis (cards destacadas)
-  static const Color surfaceVariant = Color(0xFFFFF3E1);
+  /// Superficie con sutil diferencia (cards sobre fondo)
+  static const Color surfaceVariant = Color(0xFFF9FAFB);
 
   /// Superficie con mayor contraste
-  static const Color surfaceContainerHighest = Color(0xFFEFE6D8);
+  static const Color surfaceContainerHighest = Color(0xFFF3F4F6);
 
   // ═══════════════════════════════════════════════════════════════════════════
   // COLORES DE TEXTO (on*)
-  // Estos colores se usan SOBRE los colores principales
   // ═══════════════════════════════════════════════════════════════════════════
 
   /// Texto sobre color primario (botones azules)
   static const Color onPrimary = Color(0xFFFFFFFF);
 
-  /// Texto sobre color secundario (fondos claros)
-  static const Color onSecondary = Color(0xFF2A2318);
+  /// Texto sobre color secundario
+  static const Color onSecondary = Color(0xFFFFFFFF);
 
-  /// Texto sobre color terciario (elementos rojos)
+  /// Texto sobre color terciario
   static const Color onTertiary = Color(0xFFFFFFFF);
 
-  /// Texto sobre fondo
-  static const Color onBackground = Color(0xFF1E1B16);
+  /// Texto principal - Negro suave
+  static const Color onBackground = Color(0xFF1A1A1A);
 
   /// Texto sobre superficie
-  static const Color onSurface = Color(0xFF1E1B16);
+  static const Color onSurface = Color(0xFF1A1A1A);
 
-  /// Texto secundario/subtítulos
-  static const Color onSurfaceVariant = Color(0xFF4D4639);
+  /// Texto secundario/subtítulos - Gris medio
+  static const Color onSurfaceVariant = Color(0xFF6B7280);
 
   // ═══════════════════════════════════════════════════════════════════════════
   // COLORES SEMÁNTICOS
   // ═══════════════════════════════════════════════════════════════════════════
 
-  /// Error - Rojo para mensajes de error (usando el rojo de la paleta)
-  static const Color error = Color(0xFFFA2D1A);
+  /// Error - Rojo claro
+  static const Color error = Color(0xFFDC2626);
   static const Color onError = Color(0xFFFFFFFF);
-  static const Color errorContainer = Color(0xFFFFDAD6);
-  static const Color onErrorContainer = Color(0xFF410003);
+  static const Color errorContainer = Color(0xFFFEE2E2);
+  static const Color onErrorContainer = Color(0xFF7F1D1D);
 
-  /// Éxito - Verde para confirmaciones
-  static const Color success = Color(0xFF2E7D32);
+  /// Éxito - Verde fresco
+  static const Color success = Color(0xFF16A34A);
   static const Color onSuccess = Color(0xFFFFFFFF);
 
-  /// Advertencia - Amarillo/ámbar para alertas
-  static const Color warning = Color(0xFFE65100);
+  /// Advertencia - Ámbar cálido
+  static const Color warning = Color(0xFFF59E0B);
   static const Color onWarning = Color(0xFFFFFFFF);
 
-  /// Información - Azul (usando el primario)
-  static const Color info = Color(0xFF2E4C8C);
+  /// Información - Usa el primario
+  static const Color info = Color(0xFF2B4CFF);
   static const Color onInfo = Color(0xFFFFFFFF);
 
   // ═══════════════════════════════════════════════════════════════════════════
   // COLORES DE UI
   // ═══════════════════════════════════════════════════════════════════════════
 
-  /// Bordes y divisores
-  static const Color outline = Color(0xFFD4C9B9);
-  static const Color outlineVariant = Color(0xFFCABFA9);
+  /// Bordes y divisores - Gris muy sutil
+  static const Color outline = Color(0xFFE5E7EB);
+  static const Color outlineVariant = Color(0xFFD1D5DB);
 
   /// Sombras
   static const Color shadow = Color(0x1A000000);
 
-  /// Overlay para modales y diálogos
+  /// Overlay para modales
   static const Color scrim = Color(0x52000000);
 
   /// Elementos deshabilitados
-  static const Color disabled = Color(0xFFBDB4A5);
-  static const Color onDisabled = Color(0xFF9E9589);
+  static const Color disabled = Color(0xFFD1D5DB);
+  static const Color onDisabled = Color(0xFF9CA3AF);
 
   // ═══════════════════════════════════════════════════════════════════════════
   // COLORES PARA INPUTS
   // ═══════════════════════════════════════════════════════════════════════════
 
   /// Borde de input en estado normal
-  static const Color inputBorder = Color(0xFFCABFA9);
+  static const Color inputBorder = Color(0xFFE5E7EB);
 
   /// Borde de input cuando está enfocado
   static const Color inputBorderFocused = primary;
@@ -142,6 +142,6 @@ abstract class AppColors {
   /// Borde de input con error
   static const Color inputBorderError = error;
 
-  /// Fondo de input
-  static const Color inputFill = Color(0xFFFFFAF5);
+  /// Fondo de input - Blanco
+  static const Color inputFill = Color(0xFFFFFFFF);
 }

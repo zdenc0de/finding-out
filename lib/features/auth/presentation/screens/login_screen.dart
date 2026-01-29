@@ -1,7 +1,8 @@
 // lib/features/auth/presentation/screens/login_screen.dart
-// Pantalla de inicio de sesión
+// Pantalla de inicio de sesión - Estilo Santorini
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -23,6 +24,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
+
+  @override
+  void initState() {
+    super.initState();
+    // Status bar transparente para el efecto full-screen
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
+      ),
+    );
+  }
 
   @override
   void dispose() {
@@ -86,7 +99,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             onPressed: () {
               Navigator.of(context).pop();
               ref.read(authNotifierProvider.notifier).clearError();
-              // Ir a la pantalla de verificación con el email
               context.go('${AppRoutes.verifyEmail}?email=${Uri.encodeComponent(email)}');
             },
             child: const Text('Verificar email'),
@@ -102,13 +114,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final isLoading = authState.status == AuthStatus.loading;
 
     ref.listen<AuthState>(authNotifierProvider, (previous, next) {
-      // Caso especial: email no verificado - mostrar diálogo
       if (next.status == AuthStatus.emailNotVerified) {
         _showEmailNotVerifiedDialog(next.pendingEmail ?? '');
         return;
       }
 
-      // Error general - mostrar snackbar
       if (next.status == AuthStatus.error && next.errorMessage != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -121,55 +131,62 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     });
 
     return Scaffold(
+      backgroundColor: Colors.white,
       body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Form(
               key: _formKey,
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Logo - Usa color primario del tema
-                  Icon(
-                    PhosphorIcons.compassRose(PhosphorIconsStyle.duotone),
-                    size: 80,
-                    color: Theme.of(context).colorScheme.primary,
+                  const SizedBox(height: 60),
+
+                  // Título grande estilo Santorini
+                  Text(
+                    'Finding\nOut',
+                    style: Theme.of(context).textTheme.displayMedium?.copyWith(
+                          color: AppColors.primary,
+                          height: 1.1,
+                          letterSpacing: -1,
+                        ),
                   ),
                   const SizedBox(height: 16),
-                  // Título - Usa color primario del tema
+
+                  // Subtítulo
                   Text(
-                    'Finding Out',
-                    style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 8),
-                  // Subtítulo - Usa color secundario de texto del tema
-                  Text(
-                    'Explora tu ciudad',
+                    'Descubre eventos cerca de ti',
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          color: AppColors.onSurfaceVariant,
                         ),
-                    textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 48),
-                  // Email - El tema maneja todos los estilos del input
+                  const SizedBox(height: 60),
+
+                  // Label sutil
+                  Text(
+                    'Iniciar sesión',
+                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                          letterSpacing: 1,
+                        ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Email
                   TextFormField(
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
                     textInputAction: TextInputAction.next,
                     decoration: InputDecoration(
                       labelText: 'Email',
+                      hintText: 'tu@email.com',
                       prefixIcon: Icon(PhosphorIcons.envelope()),
                     ),
                     validator: Validators.validateEmail,
                   ),
                   const SizedBox(height: 16),
-                  // Contraseña - El tema maneja todos los estilos del input
+
+                  // Contraseña
                   TextFormField(
                     controller: _passwordController,
                     obscureText: _obscurePassword,
@@ -185,53 +202,79 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               : PhosphorIcons.eyeSlash(),
                         ),
                         onPressed: () {
-                          setState(() {
-                            _obscurePassword = !_obscurePassword;
-                          });
+                          setState(() => _obscurePassword = !_obscurePassword);
                         },
                       ),
                     ),
                     validator: Validators.validateLoginPassword,
                   ),
                   const SizedBox(height: 8),
+
                   // Link olvidé contraseña
                   Align(
                     alignment: Alignment.centerRight,
                     child: TextButton(
                       onPressed: () => context.go(AppRoutes.forgotPassword),
-                      child: const Text('¿Olvidaste tu contraseña?'),
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      ),
+                      child: Text(
+                        '¿Olvidaste tu contraseña?',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.w500,
+                            ),
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  // Botón principal - El tema maneja todos los estilos
+                  const SizedBox(height: 32),
+
+                  // Botón principal
                   SizedBox(
-                    height: 50,
+                    width: double.infinity,
+                    height: 56,
                     child: ElevatedButton(
                       onPressed: isLoading ? null : _handleLogin,
                       child: isLoading
-                          ? SizedBox(
-                              height: 20,
-                              width: 20,
+                          ? const SizedBox(
+                              height: 24,
+                              width: 24,
                               child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Theme.of(context).colorScheme.onPrimary,
+                                strokeWidth: 2.5,
+                                color: Colors.white,
                               ),
                             )
-                          : const Text('Iniciar sesión'),
+                          : const Text('Continuar'),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 32),
+
+                  // Divisor
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text('¿No tienes cuenta?'),
-                      TextButton(
-                        // Navegamos a /register usando GoRouter
-                        onPressed: () => context.go(AppRoutes.register),
-                        child: const Text('Regístrate'),
+                      const Expanded(child: Divider(color: AppColors.outline)),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Text(
+                          'o',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
                       ),
+                      const Expanded(child: Divider(color: AppColors.outline)),
                     ],
                   ),
+                  const SizedBox(height: 32),
+
+                  // Botón de registro
+                  SizedBox(
+                    width: double.infinity,
+                    height: 56,
+                    child: OutlinedButton(
+                      onPressed: () => context.go(AppRoutes.register),
+                      child: const Text('Crear cuenta'),
+                    ),
+                  ),
+                  const SizedBox(height: 40),
                 ],
               ),
             ),

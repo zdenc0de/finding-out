@@ -3,12 +3,12 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/date_formatter.dart';
 import '../../../../core/utils/validators.dart';
+import '../../../../core/widgets/main_shell.dart';
 import '../../domain/entities/category.dart';
 import '../providers/events_provider.dart';
 import '../widgets/address_search_field.dart';
@@ -47,6 +47,24 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
     super.dispose();
   }
 
+  /// Limpia el formulario después de crear un evento exitosamente.
+  void _resetForm() {
+    _titleController.clear();
+    _descriptionController.clear();
+    setState(() {
+      _selectedCategoryId = null;
+      _imageUrl = null;
+      _startDate = null;
+      _startTime = null;
+      _endDate = null;
+      _endTime = null;
+      _locationLat = null;
+      _locationLng = null;
+      _address = null;
+    });
+    _formKey.currentState?.reset();
+  }
+
   @override
   Widget build(BuildContext context) {
     final eventsState = ref.watch(eventsNotifierProvider);
@@ -63,7 +81,10 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
           ),
         );
         ref.read(eventsNotifierProvider.notifier).clearCreateState();
-        context.pop();
+        // Limpiar formulario
+        _resetForm();
+        // Cambiar al tab de eventos (índice 0)
+        ref.read(currentTabIndexProvider.notifier).state = 0;
       }
 
       if (next.status == EventsStatus.createError && next.errorMessage != null) {
@@ -78,10 +99,6 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-          icon: Icon(PhosphorIcons.arrowLeft()),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
         title: const Text('Crear Evento'),
         centerTitle: true,
       ),

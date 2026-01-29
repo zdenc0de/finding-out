@@ -1,5 +1,5 @@
 // lib/core/widgets/floating_navbar.dart
-// Navbar flotante con diseño elíptico centrado
+// Navbar flotante con diseño elíptico centrado - 4 items
 
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -10,6 +10,12 @@ import '../theme/app_colors.dart';
 ///
 /// Se posiciona en la parte inferior de la pantalla con padding,
 /// centrado horizontalmente con forma de cápsula/elipse.
+///
+/// Items:
+/// - 0: Eventos (lista)
+/// - 1: Mapa
+/// - 2: Crear evento (+)
+/// - 3: Perfil
 class FloatingNavbar extends StatelessWidget {
   const FloatingNavbar({
     super.key,
@@ -17,7 +23,7 @@ class FloatingNavbar extends StatelessWidget {
     required this.onTap,
   });
 
-  /// Índice del tab actualmente seleccionado (0 = Home, 1 = Mapa)
+  /// Índice del tab actualmente seleccionado
   final int currentIndex;
 
   /// Callback cuando se selecciona un tab
@@ -53,6 +59,7 @@ class FloatingNavbar extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
+              // Eventos
               _NavbarItem(
                 icon: PhosphorIcons.house(PhosphorIconsStyle.regular),
                 activeIcon: PhosphorIcons.house(PhosphorIconsStyle.fill),
@@ -60,7 +67,8 @@ class FloatingNavbar extends StatelessWidget {
                 isSelected: currentIndex == 0,
                 onTap: () => onTap(0),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 4),
+              // Mapa
               _NavbarItem(
                 icon: PhosphorIcons.mapTrifold(PhosphorIconsStyle.regular),
                 activeIcon: PhosphorIcons.mapTrifold(PhosphorIconsStyle.fill),
@@ -68,8 +76,65 @@ class FloatingNavbar extends StatelessWidget {
                 isSelected: currentIndex == 1,
                 onTap: () => onTap(1),
               ),
+              const SizedBox(width: 4),
+              // Crear evento (+) - Botón especial
+              _CreateButton(
+                isSelected: currentIndex == 2,
+                onTap: () => onTap(2),
+              ),
+              const SizedBox(width: 4),
+              // Perfil
+              _NavbarItem(
+                icon: PhosphorIcons.user(PhosphorIconsStyle.regular),
+                activeIcon: PhosphorIcons.user(PhosphorIconsStyle.fill),
+                label: 'Perfil',
+                isSelected: currentIndex == 3,
+                onTap: () => onTap(3),
+              ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Botón especial de crear evento (+)
+/// Siempre tiene fondo primario para destacar como CTA principal.
+class _CreateButton extends StatelessWidget {
+  const _CreateButton({
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeInOut,
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: AppColors.primary,
+          borderRadius: BorderRadius.circular(40),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: AppColors.primary.withAlpha(80),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : null,
+        ),
+        child: Icon(
+          PhosphorIcons.plus(PhosphorIconsStyle.bold),
+          color: AppColors.onPrimary,
+          size: 24,
         ),
       ),
     );
@@ -100,7 +165,7 @@ class _NavbarItem extends StatelessWidget {
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeInOut,
         padding: EdgeInsets.symmetric(
-          horizontal: isSelected ? 20 : 16,
+          horizontal: isSelected ? 16 : 12,
           vertical: 12,
         ),
         decoration: BoxDecoration(
@@ -113,16 +178,16 @@ class _NavbarItem extends StatelessWidget {
             Icon(
               isSelected ? activeIcon : icon,
               color: isSelected ? AppColors.onPrimary : AppColors.onSurfaceVariant,
-              size: 24,
+              size: 22,
             ),
             if (isSelected) ...[
-              const SizedBox(width: 8),
+              const SizedBox(width: 6),
               Text(
                 label,
                 style: const TextStyle(
                   color: AppColors.onPrimary,
                   fontWeight: FontWeight.w600,
-                  fontSize: 14,
+                  fontSize: 13,
                 ),
               ),
             ],

@@ -23,10 +23,6 @@ class ProfileScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-          icon: Icon(PhosphorIcons.arrowLeft()),
-          onPressed: () => context.go(AppRoutes.home),
-        ),
         title: const Text('Mi perfil'),
         centerTitle: true,
       ),
