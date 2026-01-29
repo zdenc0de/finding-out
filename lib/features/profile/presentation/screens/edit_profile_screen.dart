@@ -6,7 +6,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
-import '../../../../core/config/router_config.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/validators.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
@@ -90,7 +89,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
           ),
         );
         // Volver al perfil
-        context.go(AppRoutes.profile);
+        context.pop();
       } else if (next.status == AuthStatus.error && next.errorMessage != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -106,7 +105,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       appBar: AppBar(
         leading: IconButton(
           icon: Icon(PhosphorIcons.arrowLeft()),
-          onPressed: () => context.go(AppRoutes.profile),
+          onPressed: () => context.pop(),
         ),
         title: const Text('Editar perfil'),
         actions: [

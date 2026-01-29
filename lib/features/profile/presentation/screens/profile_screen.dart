@@ -74,7 +74,7 @@ class ProfileScreen extends ConsumerWidget {
               // BOTÓN: Editar perfil
               // ─────────────────────────────────────────────────────────────
               OutlinedButton.icon(
-                onPressed: () => context.go(AppRoutes.editProfile),
+                onPressed: () => context.push(AppRoutes.editProfile),
                 icon: Icon(PhosphorIcons.pencilSimple()),
                 label: const Text('Editar perfil'),
               ),
