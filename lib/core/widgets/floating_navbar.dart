@@ -1,5 +1,5 @@
 // lib/core/widgets/floating_navbar.dart
-// Navbar flotante con diseño elíptico centrado - 4 items
+// Navbar flotante con diseño elíptico centrado - 5 items
 
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -16,6 +16,7 @@ import '../theme/app_colors.dart';
 /// - 1: Mapa
 /// - 2: Crear evento (+)
 /// - 3: Perfil
+/// - 4: Buscar usuarios
 class FloatingNavbar extends StatelessWidget {
   const FloatingNavbar({
     super.key,
@@ -90,6 +91,15 @@ class FloatingNavbar extends StatelessWidget {
                 label: 'Perfil',
                 isSelected: currentIndex == 3,
                 onTap: () => onTap(3),
+              ),
+              const SizedBox(width: 4),
+              // Buscar usuarios
+              _NavbarItem(
+                  icon: PhosphorIcons.users(PhosphorIconsStyle.regular),
+                activeIcon: PhosphorIcons.users(PhosphorIconsStyle.fill),
+                label: 'Buscar',
+                isSelected: currentIndex == 4,
+                onTap: () => onTap(4),
               ),
             ],
           ),

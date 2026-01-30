@@ -17,6 +17,8 @@ import '../../features/events/presentation/screens/category_events_screen.dart';
 import '../../features/events/presentation/screens/create_event_screen.dart';
 import '../../features/events/presentation/screens/event_detail_screen.dart';
 import '../../features/profile/presentation/screens/edit_profile_screen.dart';
+import '../../features/profile/presentation/screens/user_profile_screen.dart';
+import '../../features/profile/presentation/screens/user_search_screen.dart';
 import '../widgets/main_shell.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
 
@@ -34,6 +36,8 @@ abstract class AppRoutes {
   static const String categoryEvents = '/events/category/:categoryId';
   static const String profile = '/profile';
   static const String editProfile = '/profile/edit';
+  static const String userProfile = '/users/:id';
+  static const String userSearch = '/users/search';
 }
 
 /// Provider de GoRouter que escucha cambios de autenticación
@@ -181,6 +185,29 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.editProfile,
         name: 'editProfile',
         builder: (context, state) => const EditProfileScreen(),
+      ),
+
+      // ─────────────────────────────────────────────────────────────────
+      // RUTA: /users/search
+      // Pantalla de búsqueda de usuarios (requiere autenticación)
+      // ─────────────────────────────────────────────────────────────────
+      GoRoute(
+        path: AppRoutes.userSearch,
+        name: 'userSearch',
+        builder: (context, state) => const UserSearchScreen(),
+      ),
+
+      // ─────────────────────────────────────────────────────────────────
+      // RUTA: /users/:id
+      // Pantalla de perfil de otro usuario (requiere autenticación)
+      // ─────────────────────────────────────────────────────────────────
+      GoRoute(
+        path: '/users/:id',
+        name: 'userProfile',
+        builder: (context, state) {
+          final userId = state.pathParameters['id']!;
+          return UserProfileScreen(userId: userId);
+        },
       ),
     ],
 
