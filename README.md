@@ -1,16 +1,18 @@
-# finding_out
-
-A new Flutter project.
-
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Resumen de Mejoras Realizadas
+Navegación (ya estaba actualizado por ti)
+MainShell ahora tiene 5 tabs: Eventos, Mapa, Crear (+), Perfil, Buscar usuarios
+FloatingNavbar con 5 items incluyendo el botón especial "+"
+Screens mejoradas con estilo Santorini
+Screen	Mejoras
+RegisterScreen	Título grande "Crear cuenta", botón back circular, layout full-width
+ForgotPasswordScreen	Título "Recuperar contraseña", estado de éxito mejorado con icono
+SplashScreen	Logo "Finding Out" grande centrado, indicador sutil
+EventDetailScreen	Hero image con SliverAppBar, info cards modernas, gradient overlay
+Limpieza
+Eliminado events_list_screen.dart (archivo vacío sin usar)
+Consistencia de diseño
+Todos usan backgroundColor: Colors.white
+Títulos grandes con displaySmall/displayMedium en color primario
+Botones back circulares con fondo gris sutil
+Botones full-width de altura 56px
+Espaciado consistente (24px padding horizontal)
