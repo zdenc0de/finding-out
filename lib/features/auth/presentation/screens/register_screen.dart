@@ -1,7 +1,8 @@
 // lib/features/auth/presentation/screens/register_screen.dart
-// Pantalla de registro de usuario
+// Pantalla de registro de usuario - Estilo Santorini
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -26,6 +27,17 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _confirmPasswordController = TextEditingController();
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+
+  @override
+  void initState() {
+    super.initState();
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
+      ),
+    );
+  }
 
   @override
   void dispose() {
@@ -56,7 +68,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           color: AppColors.success,
           size: 48,
         ),
-        title: const Text('¡Cuenta creada!'),
+        title: const Text('Cuenta creada'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -82,12 +94,16 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           ],
         ),
         actions: [
-          ElevatedButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              context.go('${AppRoutes.verifyEmail}?email=${Uri.encodeComponent(_emailController.text.trim())}');
-            },
-            child: const Text('Continuar'),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                context.go(
+                    '${AppRoutes.verifyEmail}?email=${Uri.encodeComponent(_emailController.text.trim())}');
+              },
+              child: const Text('Continuar'),
+            ),
           ),
         ],
       ),
@@ -120,11 +136,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 12),
-            const Text(
-              '¿Quieres iniciar sesión?',
-              textAlign: TextAlign.center,
-            ),
           ],
         ),
         actions: [
@@ -149,16 +160,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     final authState = ref.watch(authNotifierProvider);
     final isLoading = authState.status == AuthStatus.loading;
 
-    // Escuchamos cambios de autenticación
     ref.listen<AuthState>(authNotifierProvider, (previous, next) {
-      // Verificación de email pendiente - mostrar diálogo de éxito
       if (next.status == AuthStatus.pendingVerification) {
         _showRegistrationSuccessDialog();
         return;
       }
-      // Error de autenticación
       if (next.status == AuthStatus.error && next.errorMessage != null) {
-        // Caso especial: email ya registrado
         if (next.errorMessage!.contains('ya está registrado')) {
           _showEmailAlreadyExistsDialog();
         } else {
@@ -174,43 +181,63 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     });
 
     return Scaffold(
-      appBar: AppBar(
-        // Botón de retroceso usando GoRouter
-        leading: IconButton(
-          icon: Icon(PhosphorIcons.arrowLeft()),
-          onPressed: () => context.go(AppRoutes.login),
-        ),
-        title: const Text('Crear cuenta'),
-      ),
+      backgroundColor: Colors.white,
       body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Form(
               key: _formKey,
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Icono - Usa color primario del tema
-                  Icon(
-                    PhosphorIcons.userPlus(PhosphorIconsStyle.duotone),
-                    size: 60,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
                   const SizedBox(height: 24),
-                  // Nombre - El tema maneja los estilos del input
+
+                  // Botón de retroceso
+                  IconButton(
+                    onPressed: () => context.go(AppRoutes.login),
+                    icon: Icon(PhosphorIcons.arrowLeft()),
+                    style: IconButton.styleFrom(
+                      backgroundColor: AppColors.surfaceVariant,
+                      padding: const EdgeInsets.all(12),
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+
+                  // Título grande estilo Santorini
+                  Text(
+                    'Crear\ncuenta',
+                    style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                          color: AppColors.primary,
+                          height: 1.1,
+                          letterSpacing: -0.5,
+                        ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Subtítulo
+                  Text(
+                    'Únete para descubrir eventos',
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: AppColors.onSurfaceVariant,
+                        ),
+                  ),
+                  const SizedBox(height: 40),
+
+                  // Nombre
                   TextFormField(
                     controller: _nameController,
                     textInputAction: TextInputAction.next,
                     textCapitalization: TextCapitalization.words,
                     decoration: InputDecoration(
                       labelText: 'Nombre',
+                      hintText: 'Tu nombre',
                       prefixIcon: Icon(PhosphorIcons.user()),
                     ),
                     validator: Validators.validateName,
                   ),
                   const SizedBox(height: 16),
+
                   // Email
                   TextFormField(
                     controller: _emailController,
@@ -218,11 +245,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     textInputAction: TextInputAction.next,
                     decoration: InputDecoration(
                       labelText: 'Email',
+                      hintText: 'tu@email.com',
                       prefixIcon: Icon(PhosphorIcons.envelope()),
                     ),
                     validator: Validators.validateEmail,
                   ),
                   const SizedBox(height: 16),
+
                   // Contraseña
                   TextFormField(
                     controller: _passwordController,
@@ -238,15 +267,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                               : PhosphorIcons.eyeSlash(),
                         ),
                         onPressed: () {
-                          setState(() {
-                            _obscurePassword = !_obscurePassword;
-                          });
+                          setState(() => _obscurePassword = !_obscurePassword);
                         },
                       ),
                     ),
                     validator: Validators.validateNewPassword,
                   ),
                   const SizedBox(height: 16),
+
                   // Confirmar contraseña
                   TextFormField(
                     controller: _confirmPasswordController,
@@ -255,7 +283,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     onFieldSubmitted: (_) => _handleRegister(),
                     decoration: InputDecoration(
                       labelText: 'Confirmar contraseña',
-                      prefixIcon: Icon(PhosphorIcons.lock()),
+                      prefixIcon: Icon(PhosphorIcons.lockKey()),
                       suffixIcon: IconButton(
                         icon: Icon(
                           _obscureConfirmPassword
@@ -263,9 +291,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                               : PhosphorIcons.eyeSlash(),
                         ),
                         onPressed: () {
-                          setState(() {
-                            _obscureConfirmPassword = !_obscureConfirmPassword;
-                          });
+                          setState(() =>
+                              _obscureConfirmPassword = !_obscureConfirmPassword);
                         },
                       ),
                     ),
@@ -274,36 +301,45 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       _passwordController.text,
                     ),
                   ),
-                  const SizedBox(height: 24),
-                  // Botón principal - El tema maneja todos los estilos
+                  const SizedBox(height: 32),
+
+                  // Botón principal
                   SizedBox(
-                    height: 50,
+                    width: double.infinity,
+                    height: 56,
                     child: ElevatedButton(
                       onPressed: isLoading ? null : _handleRegister,
                       child: isLoading
-                          ? SizedBox(
-                              height: 20,
-                              width: 20,
+                          ? const SizedBox(
+                              height: 24,
+                              width: 24,
                               child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Theme.of(context).colorScheme.onPrimary,
+                                strokeWidth: 2.5,
+                                color: Colors.white,
                               ),
                             )
                           : const Text('Crear cuenta'),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 24),
+
+                  // Link a login
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text('¿Ya tienes cuenta?'),
+                      Text(
+                        '¿Ya tienes cuenta?',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: AppColors.onSurfaceVariant,
+                            ),
+                      ),
                       TextButton(
-                        // Navegamos a /login usando GoRouter
                         onPressed: () => context.go(AppRoutes.login),
                         child: const Text('Inicia sesión'),
                       ),
                     ],
                   ),
+                  const SizedBox(height: 24),
                 ],
               ),
             ),

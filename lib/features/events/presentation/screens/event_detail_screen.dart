@@ -1,7 +1,8 @@
 // lib/features/events/presentation/screens/event_detail_screen.dart
-// Pantalla de detalle de evento
+// Pantalla de detalle de evento - Estilo Santorini
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -13,8 +14,6 @@ import '../../../profile/presentation/providers/profile_provider.dart';
 import '../providers/events_provider.dart';
 
 /// Pantalla de detalle de un evento.
-///
-/// Muestra toda la información del evento seleccionado.
 class EventDetailScreen extends ConsumerWidget {
   final String eventId;
 
@@ -27,80 +26,85 @@ class EventDetailScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final eventAsync = ref.watch(eventByIdProvider(eventId));
 
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: Icon(PhosphorIcons.arrowLeft()),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: const Text('Detalle del evento'),
+    // Status bar transparente para efecto inmersivo
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
       ),
+    );
+
+    return Scaffold(
+      backgroundColor: Colors.white,
       body: eventAsync.when(
         loading: () => const Center(
           child: CircularProgressIndicator(),
         ),
-        error: (error, stackTrace) => Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  PhosphorIcons.warning(PhosphorIconsStyle.duotone),
-                  size: 64,
-                  color: AppColors.error,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Error al cargar el evento',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-              ],
-            ),
-          ),
-        ),
+        error: (error, stackTrace) => _buildErrorState(context),
         data: (event) {
           if (event == null) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    PhosphorIcons.calendarX(PhosphorIconsStyle.duotone),
-                    size: 64,
-                    color: AppColors.onSurfaceVariant,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Evento no encontrado',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                ],
-              ),
-            );
+            return _buildNotFoundState(context);
           }
 
-          return SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Imagen del evento
-                if (event.imageUrl != null && event.imageUrl!.isNotEmpty)
-                  SizedBox(
-                    height: 200,
-                    width: double.infinity,
-                    child: Image.network(
-                      event.imageUrl!,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) =>
-                          _buildImagePlaceholder(),
+          return CustomScrollView(
+            slivers: [
+              // Hero Image con AppBar transparente
+              SliverAppBar(
+                expandedHeight: 280,
+                pinned: true,
+                stretch: true,
+                backgroundColor: AppColors.primary,
+                leading: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: CircleAvatar(
+                    backgroundColor: Colors.black.withAlpha(80),
+                    child: IconButton(
+                      icon: const Icon(
+                        Icons.arrow_back,
+                        color: Colors.white,
+                      ),
+                      onPressed: () => Navigator.of(context).pop(),
                     ),
-                  )
-                else
-                  _buildImagePlaceholder(),
+                  ),
+                ),
+                flexibleSpace: FlexibleSpaceBar(
+                  stretchModes: const [StretchMode.zoomBackground],
+                  background: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      // Imagen
+                      if (event.imageUrl != null && event.imageUrl!.isNotEmpty)
+                        Image.network(
+                          event.imageUrl!,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) =>
+                              _buildImagePlaceholder(),
+                        )
+                      else
+                        _buildImagePlaceholder(),
 
-                Padding(
-                  padding: const EdgeInsets.all(16),
+                      // Gradient overlay
+                      Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.transparent,
+                              Colors.black.withAlpha(150),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              // Contenido
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -108,36 +112,36 @@ class EventDetailScreen extends ConsumerWidget {
                       Text(
                         event.title,
                         style:
-                            Theme.of(context).textTheme.headlineSmall?.copyWith(
+                            Theme.of(context).textTheme.headlineMedium?.copyWith(
                                   fontWeight: FontWeight.bold,
+                                  color: AppColors.onSurface,
+                                  height: 1.2,
                                 ),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 24),
 
-                      // Fecha
-                      _buildInfoRow(
+                      // Info cards
+                      _buildInfoCard(
                         context,
-                        icon: PhosphorIcons.calendar(),
-                        label: 'Fecha',
+                        icon: PhosphorIcons.calendar(PhosphorIconsStyle.fill),
+                        title: 'Fecha',
                         value: DateFormatter.formatLongDate(event.startDate),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 12),
 
-                      // Hora
-                      _buildInfoRow(
+                      _buildInfoCard(
                         context,
-                        icon: PhosphorIcons.clock(),
-                        label: 'Hora',
+                        icon: PhosphorIcons.clock(PhosphorIconsStyle.fill),
+                        title: 'Hora',
                         value: DateFormatter.formatTime(event.startDate),
                       ),
 
-                      // Ubicación
                       if (event.address != null) ...[
-                        const SizedBox(height: 8),
-                        _buildInfoRow(
+                        const SizedBox(height: 12),
+                        _buildInfoCard(
                           context,
-                          icon: PhosphorIcons.mapPin(),
-                          label: 'Ubicación',
+                          icon: PhosphorIcons.mapPin(PhosphorIconsStyle.fill),
+                          title: 'Ubicación',
                           value: event.address!,
                         ),
                       ],
@@ -145,93 +149,204 @@ class EventDetailScreen extends ConsumerWidget {
                       // Descripción
                       if (event.description != null &&
                           event.description!.isNotEmpty) ...[
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 32),
                         Text(
-                          'Descripción',
-                          style:
-                              Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                          'Acerca del evento',
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.onSurface,
+                              ),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 12),
                         Text(
                           event.description!,
-                          style: Theme.of(context).textTheme.bodyMedium,
+                          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                color: AppColors.onSurfaceVariant,
+                                height: 1.6,
+                              ),
                         ),
                       ],
 
                       // Organizador
                       if (event.createdBy != null) ...[
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 32),
                         Text(
                           'Organizador',
-                          style:
-                              Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.onSurface,
+                              ),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 12),
                         _CreatorCard(creatorId: event.createdBy!),
                       ],
+
+                      // Espacio para el navbar
+                      const SizedBox(height: 100),
                     ],
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           );
         },
       ),
     );
   }
 
-  Widget _buildImagePlaceholder() {
-    return Container(
-      height: 200,
-      width: double.infinity,
-      color: AppColors.surfaceVariant,
-      child: Center(
-        child: Icon(
-          PhosphorIcons.calendarBlank(PhosphorIconsStyle.duotone),
-          size: 64,
-          color: AppColors.onSurfaceVariant.withAlpha(128),
+  Widget _buildErrorState(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: AppColors.error.withAlpha(25),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Icon(
+                PhosphorIcons.warning(PhosphorIconsStyle.duotone),
+                size: 48,
+                color: AppColors.error,
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'Error al cargar',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'No pudimos cargar el evento',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: AppColors.onSurfaceVariant,
+                  ),
+            ),
+            const SizedBox(height: 24),
+            OutlinedButton.icon(
+              onPressed: () => Navigator.of(context).pop(),
+              icon: Icon(PhosphorIcons.arrowLeft()),
+              label: const Text('Volver'),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildInfoRow(
+  Widget _buildNotFoundState(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceVariant,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Icon(
+                PhosphorIcons.calendarX(PhosphorIconsStyle.duotone),
+                size: 48,
+                color: AppColors.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'Evento no encontrado',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Este evento ya no está disponible',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: AppColors.onSurfaceVariant,
+                  ),
+            ),
+            const SizedBox(height: 24),
+            OutlinedButton.icon(
+              onPressed: () => Navigator.of(context).pop(),
+              icon: Icon(PhosphorIcons.arrowLeft()),
+              label: const Text('Volver'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildImagePlaceholder() {
+    return Container(
+      color: AppColors.primary.withAlpha(30),
+      child: Center(
+        child: Icon(
+          PhosphorIcons.calendarBlank(PhosphorIconsStyle.duotone),
+          size: 64,
+          color: AppColors.primary.withAlpha(100),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoCard(
     BuildContext context, {
     required PhosphorIconData icon,
-    required String label,
+    required String title,
     required String value,
   }) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(
-          icon,
-          size: 20,
-          color: Theme.of(context).colorScheme.primary,
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppColors.onSurfaceVariant,
-                    ),
-              ),
-              Text(
-                value,
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-            ],
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceVariant.withAlpha(100),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withAlpha(25),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(
+              icon,
+              size: 20,
+              color: AppColors.primary,
+            ),
           ),
-        ),
-      ],
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppColors.onSurfaceVariant,
+                      ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  value,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.onSurface,
+                      ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -247,54 +362,73 @@ class _CreatorCard extends ConsumerWidget {
     final creatorAsync = ref.watch(publicProfileByIdProvider(creatorId));
 
     return creatorAsync.when(
-      loading: () => const SizedBox(
-        height: 56,
-        child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+      loading: () => Container(
+        height: 72,
+        decoration: BoxDecoration(
+          color: AppColors.surfaceVariant.withAlpha(100),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: const Center(
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
       ),
       error: (_, __) => const SizedBox.shrink(),
       data: (creator) {
         if (creator == null) return const SizedBox.shrink();
 
-        return Card(
-          margin: EdgeInsets.zero,
+        return Material(
+          color: AppColors.surfaceVariant.withAlpha(100),
+          borderRadius: BorderRadius.circular(12),
           child: InkWell(
             onTap: () => context.push('/users/$creatorId'),
             borderRadius: BorderRadius.circular(12),
             child: Padding(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(16),
               child: Row(
                 children: [
                   CircleAvatar(
-                    radius: 20,
-                    backgroundColor:
-                        Theme.of(context).colorScheme.primaryContainer,
+                    radius: 24,
+                    backgroundColor: AppColors.primary.withAlpha(25),
                     backgroundImage: creator.avatarUrl != null
                         ? NetworkImage(creator.avatarUrl!)
                         : null,
                     child: creator.avatarUrl == null
                         ? Text(
                             StringUtils.getInitials(creator.displayName),
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontWeight: FontWeight.bold,
-                              color: Theme.of(context).colorScheme.primary,
+                              color: AppColors.primary,
                             ),
                           )
                         : null,
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 16),
                   Expanded(
-                    child: Text(
-                      creator.displayName?.isNotEmpty == true
-                          ? creator.displayName!
-                          : 'Usuario',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w500,
-                          ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          creator.displayName?.isNotEmpty == true
+                              ? creator.displayName!
+                              : 'Usuario',
+                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.onSurface,
+                              ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Ver perfil',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: AppColors.primary,
+                              ),
+                        ),
+                      ],
                     ),
                   ),
                   Icon(
                     PhosphorIcons.caretRight(),
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    color: AppColors.onSurfaceVariant,
                   ),
                 ],
               ),

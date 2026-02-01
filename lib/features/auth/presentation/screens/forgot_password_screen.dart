@@ -1,7 +1,8 @@
 // lib/features/auth/presentation/screens/forgot_password_screen.dart
-// Pantalla de recuperación de contraseña
+// Pantalla de recuperación de contraseña - Estilo Santorini
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -15,13 +16,25 @@ class ForgotPasswordScreen extends ConsumerStatefulWidget {
   const ForgotPasswordScreen({super.key});
 
   @override
-  ConsumerState<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
+  ConsumerState<ForgotPasswordScreen> createState() =>
+      _ForgotPasswordScreenState();
 }
 
 class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   bool _emailSent = false;
+
+  @override
+  void initState() {
+    super.initState();
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
+      ),
+    );
+  }
 
   @override
   void dispose() {
@@ -42,16 +55,9 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
     final authState = ref.watch(authNotifierProvider);
     final isLoading = authState.status == AuthStatus.loading;
 
-    // Escuchar cambios de estado
     ref.listen<AuthState>(authNotifierProvider, (previous, next) {
       if (next.status == AuthStatus.passwordResetSent) {
         if (mounted) setState(() => _emailSent = true);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(next.successMessage ?? 'Email enviado'),
-            backgroundColor: AppColors.success,
-          ),
-        );
       } else if (next.status == AuthStatus.error && next.errorMessage != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -64,18 +70,14 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
     });
 
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: Icon(PhosphorIcons.arrowLeft()),
-          onPressed: () => context.go(AppRoutes.login),
-        ),
-        title: const Text('Recuperar contraseña'),
-      ),
+      backgroundColor: Colors.white,
       body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: _emailSent ? _buildSuccessContent() : _buildFormContent(isLoading),
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: _emailSent
+                ? _buildSuccessContent()
+                : _buildFormContent(isLoading),
           ),
         ),
       ),
@@ -86,34 +88,41 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
     return Form(
       key: _formKey,
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Icono
-          Icon(
-            PhosphorIcons.lockKey(PhosphorIconsStyle.duotone),
-            size: 80,
-            color: Theme.of(context).colorScheme.primary,
-          ),
           const SizedBox(height: 24),
-          // Título
-          Text(
-            '¿Olvidaste tu contraseña?',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 8),
-          // Descripción
-          Text(
-            'Ingresa tu email y te enviaremos un enlace para restablecer tu contraseña.',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-            textAlign: TextAlign.center,
+
+          // Botón de retroceso
+          IconButton(
+            onPressed: () => context.go(AppRoutes.login),
+            icon: Icon(PhosphorIcons.arrowLeft()),
+            style: IconButton.styleFrom(
+              backgroundColor: AppColors.surfaceVariant,
+              padding: const EdgeInsets.all(12),
+            ),
           ),
           const SizedBox(height: 32),
+
+          // Título grande estilo Santorini
+          Text(
+            'Recuperar\ncontraseña',
+            style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                  color: AppColors.primary,
+                  height: 1.1,
+                  letterSpacing: -0.5,
+                ),
+          ),
+          const SizedBox(height: 12),
+
+          // Subtítulo
+          Text(
+            'Te enviaremos un enlace para restablecer tu contraseña',
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  color: AppColors.onSurfaceVariant,
+                ),
+          ),
+          const SizedBox(height: 48),
+
           // Campo de email
           TextFormField(
             controller: _emailController,
@@ -122,33 +131,48 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
             onFieldSubmitted: (_) => _handleResetPassword(),
             decoration: InputDecoration(
               labelText: 'Email',
+              hintText: 'tu@email.com',
               prefixIcon: Icon(PhosphorIcons.envelope()),
             ),
             validator: Validators.validateEmail,
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 32),
+
           // Botón de enviar
           SizedBox(
-            height: 50,
+            width: double.infinity,
+            height: 56,
             child: ElevatedButton(
               onPressed: isLoading ? null : _handleResetPassword,
               child: isLoading
-                  ? SizedBox(
-                      height: 20,
-                      width: 20,
+                  ? const SizedBox(
+                      height: 24,
+                      width: 24,
                       child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Theme.of(context).colorScheme.onPrimary,
+                        strokeWidth: 2.5,
+                        color: Colors.white,
                       ),
                     )
                   : const Text('Enviar enlace'),
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 24),
+
           // Link a login
-          TextButton(
-            onPressed: () => context.go(AppRoutes.login),
-            child: const Text('Volver a iniciar sesión'),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                '¿Recordaste tu contraseña?',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: AppColors.onSurfaceVariant,
+                    ),
+              ),
+              TextButton(
+                onPressed: () => context.go(AppRoutes.login),
+                child: const Text('Inicia sesión'),
+              ),
+            ],
           ),
         ],
       ),
@@ -157,49 +181,95 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
 
   Widget _buildSuccessContent() {
     return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Icono de éxito
-        Icon(
-          PhosphorIcons.envelopeSimpleOpen(PhosphorIconsStyle.duotone),
-          size: 80,
-          color: AppColors.success,
-        ),
         const SizedBox(height: 24),
-        // Título
-        Text(
-          '¡Email enviado!',
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 8),
-        // Descripción
-        Text(
-          'Revisa tu bandeja de entrada en ${_emailController.text.trim()} y sigue las instrucciones para restablecer tu contraseña.',
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-          textAlign: TextAlign.center,
+
+        // Botón de retroceso
+        IconButton(
+          onPressed: () => context.go(AppRoutes.login),
+          icon: Icon(PhosphorIcons.arrowLeft()),
+          style: IconButton.styleFrom(
+            backgroundColor: AppColors.surfaceVariant,
+            padding: const EdgeInsets.all(12),
+          ),
         ),
         const SizedBox(height: 32),
+
+        // Icono de éxito
+        Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: AppColors.success.withAlpha(25),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Icon(
+            PhosphorIcons.envelopeSimpleOpen(PhosphorIconsStyle.duotone),
+            size: 48,
+            color: AppColors.success,
+          ),
+        ),
+        const SizedBox(height: 32),
+
+        // Título
+        Text(
+          'Revisa tu\nemail',
+          style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                color: AppColors.primary,
+                height: 1.1,
+                letterSpacing: -0.5,
+              ),
+        ),
+        const SizedBox(height: 12),
+
+        // Descripción
+        RichText(
+          text: TextSpan(
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  color: AppColors.onSurfaceVariant,
+                ),
+            children: [
+              const TextSpan(text: 'Enviamos un enlace a '),
+              TextSpan(
+                text: _emailController.text.trim(),
+                style: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.onSurface,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Revisa tu bandeja de entrada o la carpeta de spam.',
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: AppColors.onSurfaceVariant,
+              ),
+        ),
+        const SizedBox(height: 48),
+
         // Botón volver a login
         SizedBox(
-          height: 50,
+          width: double.infinity,
+          height: 56,
           child: ElevatedButton(
             onPressed: () => context.go(AppRoutes.login),
             child: const Text('Volver a iniciar sesión'),
           ),
         ),
         const SizedBox(height: 16),
+
         // Botón reenviar
-        TextButton(
-          onPressed: () {
-            setState(() => _emailSent = false);
-          },
-          child: const Text('¿No recibiste el email? Intentar de nuevo'),
+        SizedBox(
+          width: double.infinity,
+          height: 56,
+          child: OutlinedButton(
+            onPressed: () {
+              setState(() => _emailSent = false);
+            },
+            child: const Text('Intentar de nuevo'),
+          ),
         ),
       ],
     );
