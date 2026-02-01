@@ -57,22 +57,73 @@ Catálogo de categorías para clasificar eventos.
 
 ---
 
+### `followers`
+
+Relaciones de seguimiento entre usuarios.
+
+| Campo | Tipo | Descripción |
+|-------|------|-------------|
+| `id` | `uuid` (PK) | Identificador único de la relación |
+| `follower_id` | `uuid` (FK → auth.users.id) | Usuario que sigue |
+| `following_id` | `uuid` (FK → auth.users.id) | Usuario que es seguido |
+| `created_at` | `timestamptz` | Fecha de creación |
+
+**Constraints:**
+- `UNIQUE (follower_id, following_id)` - Evita duplicados
+- `CHECK (follower_id != following_id)` - No puedes seguirte a ti mismo
+
+**Índices:**
+- `idx_followers_follower_id` en `follower_id`
+- `idx_followers_following_id` en `following_id`
+
+---
+
+### `event_attendees`
+
+Asistencia de usuarios a eventos.
+
+| Campo | Tipo | Descripción |
+|-------|------|-------------|
+| `id` | `uuid` (PK) | Identificador único |
+| `event_id` | `uuid` (FK → events.id) | Evento al que asiste |
+| `user_id` | `uuid` (FK → auth.users.id) | Usuario que asiste |
+| `status` | `text` | Estado: 'going' o 'interested' |
+| `created_at` | `timestamptz` | Fecha de creación |
+
+**Constraints:**
+- `UNIQUE (event_id, user_id)` - Un usuario solo puede tener una entrada por evento
+- `CHECK (status IN ('going', 'interested'))` - Estados válidos
+
+**Índices:**
+- `idx_event_attendees_event_id` en `event_id`
+- `idx_event_attendees_user_id` en `user_id`
+
+---
+
 ## Relaciones
 
 ```
-auth.users.id ──────┐
-                    │
-                    ▼
-              ┌──────────┐
-              │ profiles │
-              └────┬─────┘
-                   │
-                   │ created_by
-                   ▼
-              ┌──────────┐       ┌────────────┐
-              │  events  │──────▶│ categories │
-              └──────────┘       └────────────┘
-                            category_id
+                         ┌───────────────┐
+                         │  auth.users   │
+                         └───────┬───────┘
+                                 │
+              ┌──────────────────┼──────────────────┐
+              │                  │                  │
+              ▼                  ▼                  ▼
+        ┌───────────┐      ┌──────────┐      ┌─────────────────┐
+        │ followers │      │ profiles │      │ event_attendees │
+        └───────────┘      └────┬─────┘      └────────┬────────┘
+         follower_id            │                     │
+         following_id           │ created_by          │ user_id
+                                ▼                     │ event_id
+                          ┌──────────┐                │
+                          │  events  │◀───────────────┘
+                          └────┬─────┘
+                               │ category_id
+                               ▼
+                         ┌────────────┐
+                         │ categories │
+                         └────────────┘
 ```
 
 ## Notas de implementación
@@ -80,3 +131,39 @@ auth.users.id ──────┐
 - **Autenticación**: La tabla `profiles` se crea automáticamente cuando un usuario se registra mediante un trigger en Supabase.
 - **Geolocalización**: `location_lat` y `location_lng` almacenan coordenadas para mostrar eventos en el mapa de CDMX.
 - **RLS (Row Level Security)**: Configurar políticas para que los usuarios solo puedan editar sus propios eventos.
+
+## RLS Policies
+
+### `followers`
+```sql
+-- Cualquier usuario autenticado puede ver quien sigue a quien
+CREATE POLICY "Followers viewable by authenticated" ON followers
+FOR SELECT TO authenticated USING (true);
+
+-- Solo puedes crear tus propios follows
+CREATE POLICY "Users can follow others" ON followers
+FOR INSERT TO authenticated WITH CHECK (auth.uid() = follower_id);
+
+-- Solo puedes eliminar tus propios follows
+CREATE POLICY "Users can unfollow" ON followers
+FOR DELETE TO authenticated USING (auth.uid() = follower_id);
+```
+
+### `event_attendees`
+```sql
+-- Cualquier usuario autenticado puede ver asistentes
+CREATE POLICY "Attendees viewable by authenticated" ON event_attendees
+FOR SELECT TO authenticated USING (true);
+
+-- Solo puedes marcar tu propia asistencia
+CREATE POLICY "Users can mark attendance" ON event_attendees
+FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id);
+
+-- Solo puedes actualizar tu propia asistencia
+CREATE POLICY "Users can update own attendance" ON event_attendees
+FOR UPDATE TO authenticated USING (auth.uid() = user_id);
+
+-- Solo puedes eliminar tu propia asistencia
+CREATE POLICY "Users can remove attendance" ON event_attendees
+FOR DELETE TO authenticated USING (auth.uid() = user_id);
+```

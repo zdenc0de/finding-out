@@ -5,9 +5,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/config/supabase_config.dart';
 import '../../../../core/errors/exceptions.dart';
+import '../../../profile/domain/entities/public_profile.dart';
 import '../../data/repositories/event_repository_impl.dart';
 import '../../domain/entities/category.dart';
 import '../../domain/entities/event.dart';
+import '../../domain/entities/event_attendance.dart';
 import '../../domain/repositories/event_repository.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -191,4 +193,135 @@ final eventByIdProvider =
     FutureProvider.family<Event?, String>((ref, eventId) async {
   final repository = ref.watch(eventRepositoryProvider);
   return repository.getEventById(eventId);
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PROVIDERS DE ASISTENCIA
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// Estado de asistencia para un evento.
+class AttendanceState {
+  final AttendanceStatus? status;
+  final bool isLoading;
+  final String? errorMessage;
+
+  const AttendanceState({
+    this.status,
+    this.isLoading = false,
+    this.errorMessage,
+  });
+
+  AttendanceState copyWith({
+    AttendanceStatus? status,
+    bool? isLoading,
+    String? errorMessage,
+    bool clearStatus = false,
+  }) {
+    return AttendanceState(
+      status: clearStatus ? null : (status ?? this.status),
+      isLoading: isLoading ?? this.isLoading,
+      errorMessage: errorMessage,
+    );
+  }
+}
+
+/// Notifier para gestionar la asistencia a un evento.
+class AttendanceNotifier extends StateNotifier<AttendanceState> {
+  final EventRepository _repository;
+  final String _eventId;
+  final Ref _ref;
+
+  AttendanceNotifier(this._repository, this._eventId, this._ref)
+      : super(const AttendanceState()) {
+    _loadInitialState();
+  }
+
+  Future<void> _loadInitialState() async {
+    state = state.copyWith(isLoading: true);
+    try {
+      final status = await _repository.getMyAttendance(_eventId);
+      state = AttendanceState(status: status);
+    } catch (e) {
+      state = const AttendanceState();
+    }
+  }
+
+  Future<void> markGoing() async {
+    if (state.isLoading) return;
+    state = state.copyWith(isLoading: true, errorMessage: null);
+
+    try {
+      await _repository.markAttendance(_eventId, AttendanceStatus.going);
+      state = const AttendanceState(status: AttendanceStatus.going);
+      _invalidateRelatedProviders();
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: 'Error al marcar asistencia',
+      );
+    }
+  }
+
+  Future<void> markInterested() async {
+    if (state.isLoading) return;
+    state = state.copyWith(isLoading: true, errorMessage: null);
+
+    try {
+      await _repository.markAttendance(_eventId, AttendanceStatus.interested);
+      state = const AttendanceState(status: AttendanceStatus.interested);
+      _invalidateRelatedProviders();
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: 'Error al marcar interés',
+      );
+    }
+  }
+
+  Future<void> cancelAttendance() async {
+    if (state.isLoading) return;
+    state = state.copyWith(isLoading: true, errorMessage: null);
+
+    try {
+      await _repository.cancelAttendance(_eventId);
+      state = const AttendanceState();
+      _invalidateRelatedProviders();
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: 'Error al cancelar asistencia',
+      );
+    }
+  }
+
+  void _invalidateRelatedProviders() {
+    _ref.invalidate(friendsAttendingProvider(_eventId));
+    _ref.invalidate(attendeeCountProvider(_eventId));
+  }
+
+  void clearError() {
+    state = state.copyWith(errorMessage: null);
+  }
+}
+
+/// Provider family para el estado de asistencia de cada evento.
+final attendanceNotifierProvider =
+    StateNotifierProvider.family<AttendanceNotifier, AttendanceState, String>(
+        (ref, eventId) {
+  final repository = ref.watch(eventRepositoryProvider);
+  return AttendanceNotifier(repository, eventId, ref);
+});
+
+/// Provider para obtener los amigos que van a un evento.
+final friendsAttendingProvider =
+    FutureProvider.family<List<PublicProfile>, String>((ref, eventId) async {
+  final repository = ref.watch(eventRepositoryProvider);
+  return repository.getFriendsAttending(eventId);
+});
+
+/// Provider para obtener el conteo de asistentes a un evento.
+final attendeeCountProvider =
+    FutureProvider.family<int, String>((ref, eventId) async {
+  final repository = ref.watch(eventRepositoryProvider);
+  return repository.getAttendeeCount(eventId);
 });

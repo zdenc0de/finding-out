@@ -1,8 +1,10 @@
 // lib/features/events/domain/repositories/event_repository.dart
 // Contrato/interfaz del repositorio de eventos
 
+import '../../../profile/domain/entities/public_profile.dart';
 import '../entities/category.dart';
 import '../entities/event.dart';
+import '../entities/event_attendance.dart';
 
 /// Contrato del repositorio de eventos.
 ///
@@ -41,4 +43,26 @@ abstract class EventRepository {
 
   /// Obtiene el conteo de eventos creados por un usuario.
   Future<int> getUserEventsCount(String userId);
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // ASISTENCIA A EVENTOS
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /// Marca asistencia a un evento.
+  Future<void> markAttendance(String eventId, AttendanceStatus status);
+
+  /// Cancela asistencia a un evento.
+  Future<void> cancelAttendance(String eventId);
+
+  /// Obtiene el estado de asistencia del usuario actual para un evento.
+  Future<AttendanceStatus?> getMyAttendance(String eventId);
+
+  /// Obtiene los amigos (usuarios seguidos) que van a un evento.
+  Future<List<PublicProfile>> getFriendsAttending(String eventId);
+
+  /// Obtiene el conteo total de asistentes a un evento.
+  Future<int> getAttendeeCount(String eventId);
+
+  /// Obtiene el conteo de eventos a los que ha asistido un usuario.
+  Future<int> getUserAttendedEventsCount(String userId);
 }

@@ -8,6 +8,8 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/string_utils.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../social/presentation/widgets/follow_button.dart';
 import '../../domain/entities/public_profile.dart';
 import '../providers/profile_provider.dart';
 
@@ -35,7 +37,7 @@ class UserProfileScreen extends ConsumerWidget {
         error: (_, __) => _buildErrorState(context),
         data: (profile) {
           if (profile == null) return _buildNotFoundState(context);
-          return _buildProfileContent(context, profile, statsAsync);
+          return _buildProfileContent(context, profile, statsAsync, ref);
         },
       ),
     );
@@ -85,7 +87,12 @@ class UserProfileScreen extends ConsumerWidget {
     BuildContext context,
     PublicProfile profile,
     AsyncValue<UserStats> statsAsync,
+    WidgetRef ref,
   ) {
+    // Verificar si es el perfil del usuario actual
+    final authState = ref.watch(authNotifierProvider);
+    final isOwnProfile = authState.user?.id == userId;
+
     return SafeArea(
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
@@ -122,6 +129,23 @@ class UserProfileScreen extends ConsumerWidget {
                     fontWeight: FontWeight.bold,
                   ),
             ),
+
+            // ─────────────────────────────────────────────────────────────
+            // BOTÓN SEGUIR (solo si no es el perfil propio)
+            // ─────────────────────────────────────────────────────────────
+            if (!isOwnProfile) ...[
+              const SizedBox(height: 16),
+              SizedBox(
+                width: 200,
+                child: FollowButton(userId: userId),
+              ),
+            ],
+
+            // ─────────────────────────────────────────────────────────────
+            // ESTADÍSTICAS DE SEGUIDORES
+            // ─────────────────────────────────────────────────────────────
+            const SizedBox(height: 24),
+            FollowStatsRow(userId: userId),
 
             const SizedBox(height: 32),
 

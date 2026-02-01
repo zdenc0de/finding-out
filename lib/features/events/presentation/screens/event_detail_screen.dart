@@ -12,6 +12,8 @@ import '../../../../core/utils/date_formatter.dart';
 import '../../../../core/utils/string_utils.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
 import '../providers/events_provider.dart';
+import '../widgets/attendance_buttons.dart';
+import '../widgets/friends_attending_section.dart';
 
 /// Pantalla de detalle de un evento.
 class EventDetailScreen extends ConsumerWidget {
@@ -146,6 +148,10 @@ class EventDetailScreen extends ConsumerWidget {
                         ),
                       ],
 
+                      // Botones de asistencia
+                      const SizedBox(height: 24),
+                      AttendanceButtons(eventId: eventId),
+
                       // Descripción
                       if (event.description != null &&
                           event.description!.isNotEmpty) ...[
@@ -166,6 +172,9 @@ class EventDetailScreen extends ConsumerWidget {
                               ),
                         ),
                       ],
+
+                      // Amigos que van
+                      FriendsAttendingSection(eventId: eventId),
 
                       // Organizador
                       if (event.createdBy != null) ...[

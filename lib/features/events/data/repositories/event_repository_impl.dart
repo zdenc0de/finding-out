@@ -4,10 +4,14 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/errors/exceptions.dart';
+import '../../../profile/data/models/public_profile_model.dart';
+import '../../../profile/domain/entities/public_profile.dart';
 import '../../domain/entities/category.dart';
 import '../../domain/entities/event.dart';
+import '../../domain/entities/event_attendance.dart';
 import '../../domain/repositories/event_repository.dart';
 import '../models/category_model.dart';
+import '../models/event_attendance_model.dart';
 import '../models/event_model.dart';
 
 /// Implementación del repositorio de eventos usando Supabase.
@@ -167,6 +171,151 @@ class EventRepositoryImpl implements EventRepository {
       return (response as List<dynamic>).length;
     } on PostgrestException {
       return 0;
+    } catch (e) {
+      return 0;
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // ASISTENCIA A EVENTOS
+  // ─────────────────────────────────────────────────────────────────────────
+
+  String? get _currentUserId => _client.auth.currentUser?.id;
+
+  @override
+  Future<void> markAttendance(String eventId, AttendanceStatus status) async {
+    final currentUserId = _currentUserId;
+    if (currentUserId == null) {
+      throw Exception('Usuario no autenticado');
+    }
+
+    try {
+      await _client.from('event_attendees').upsert(
+        EventAttendanceModel.toJsonForUpsert(
+          eventId: eventId,
+          userId: currentUserId,
+          status: status,
+        ),
+        onConflict: 'event_id,user_id',
+      );
+    } on PostgrestException catch (e) {
+      throw EventException(e.message);
+    }
+  }
+
+  @override
+  Future<void> cancelAttendance(String eventId) async {
+    final currentUserId = _currentUserId;
+    if (currentUserId == null) {
+      throw Exception('Usuario no autenticado');
+    }
+
+    try {
+      await _client
+          .from('event_attendees')
+          .delete()
+          .eq('event_id', eventId)
+          .eq('user_id', currentUserId);
+    } on PostgrestException catch (e) {
+      throw EventException(e.message);
+    }
+  }
+
+  @override
+  Future<AttendanceStatus?> getMyAttendance(String eventId) async {
+    final currentUserId = _currentUserId;
+    if (currentUserId == null) return null;
+
+    try {
+      final response = await _client
+          .from('event_attendees')
+          .select('status')
+          .eq('event_id', eventId)
+          .eq('user_id', currentUserId)
+          .maybeSingle();
+
+      if (response == null) return null;
+
+      final status = response['status'] as String;
+      return status == 'going'
+          ? AttendanceStatus.going
+          : AttendanceStatus.interested;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  @override
+  Future<List<PublicProfile>> getFriendsAttending(String eventId) async {
+    final currentUserId = _currentUserId;
+    if (currentUserId == null) return [];
+
+    try {
+      // Obtener IDs de usuarios que sigo
+      final followingResponse = await _client
+          .from('followers')
+          .select('following_id')
+          .eq('follower_id', currentUserId);
+
+      final followingIds = (followingResponse as List<dynamic>)
+          .map((item) => item['following_id'] as String)
+          .toList();
+
+      if (followingIds.isEmpty) return [];
+
+      // Obtener los que van al evento de entre mis seguidos
+      final attendeesResponse = await _client
+          .from('event_attendees')
+          .select('user_id')
+          .eq('event_id', eventId)
+          .eq('status', 'going')
+          .inFilter('user_id', followingIds);
+
+      final attendeeIds = (attendeesResponse as List<dynamic>)
+          .map((item) => item['user_id'] as String)
+          .toList();
+
+      if (attendeeIds.isEmpty) return [];
+
+      // Obtener perfiles de los amigos que van
+      final profilesResponse = await _client
+          .from('profiles')
+          .select('id, display_name, avatar_url, created_at')
+          .inFilter('id', attendeeIds);
+
+      return (profilesResponse as List<dynamic>)
+          .map((json) => PublicProfileModel.fromJson(json as Map<String, dynamic>))
+          .map((model) => model.toEntity())
+          .toList();
+    } catch (e) {
+      return [];
+    }
+  }
+
+  @override
+  Future<int> getAttendeeCount(String eventId) async {
+    try {
+      final response = await _client
+          .from('event_attendees')
+          .select()
+          .eq('event_id', eventId)
+          .eq('status', 'going');
+
+      return (response as List<dynamic>).length;
+    } catch (e) {
+      return 0;
+    }
+  }
+
+  @override
+  Future<int> getUserAttendedEventsCount(String userId) async {
+    try {
+      final response = await _client
+          .from('event_attendees')
+          .select()
+          .eq('user_id', userId);
+
+      return (response as List<dynamic>).length;
     } catch (e) {
       return 0;
     }
