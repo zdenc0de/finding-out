@@ -5,13 +5,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
+import 'package:latlong2/latlong.dart';
+
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/date_formatter.dart';
 import '../../../../core/utils/validators.dart';
 import '../../../../core/widgets/main_shell.dart';
+import '../../../location_search/presentation/screens/map_location_picker_screen.dart';
+import '../../../location_search/presentation/widgets/address_autocomplete_field.dart';
 import '../../domain/entities/category.dart';
 import '../providers/events_provider.dart';
-import '../widgets/address_search_field.dart';
 import '../widgets/image_picker_field.dart';
 
 /// Pantalla para crear un nuevo evento.
@@ -214,9 +217,9 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
             ),
             const SizedBox(height: 12),
 
-            // Campo de búsqueda de dirección
-            AddressSearchField(
-              onAddressFound: (result) {
+            // Campo de búsqueda de dirección con autocompletado
+            AddressAutocompleteField(
+              onAddressSelected: (result) {
                 setState(() {
                   if (result != null) {
                     _locationLat = result.latitude;
@@ -229,6 +232,26 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                   }
                 });
               },
+              onMapPickerTap: () async {
+                final result = await MapLocationPickerScreen.show(
+                  context,
+                  initialLocation: _locationLat != null && _locationLng != null
+                      ? LatLng(_locationLat!, _locationLng!)
+                      : null,
+                  initialAddress: _address,
+                );
+
+                if (result != null) {
+                  setState(() {
+                    _locationLat = result.latitude;
+                    _locationLng = result.longitude;
+                    _address = result.address;
+                  });
+                }
+              },
+              initialAddress: _address,
+              initialLat: _locationLat,
+              initialLng: _locationLng,
             ),
             const SizedBox(height: 32),
 

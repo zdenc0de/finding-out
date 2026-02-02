@@ -184,3 +184,12 @@ class InvalidImageFormatException extends StorageException {
   const InvalidImageFormatException([String? debugInfo])
       : super('Formato de imagen no válido. Usa JPG, PNG o WebP', debugInfo);
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// EXCEPCIONES DE BÚSQUEDA DE UBICACIÓN
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// Excepción para errores de búsqueda de ubicación (Photon API)
+class LocationSearchException extends AppException {
+  const LocationSearchException([super.message = 'Error al buscar ubicación']);
+}

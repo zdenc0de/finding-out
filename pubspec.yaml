@@ -24,6 +24,7 @@ dependencies:
   latlong2: ^0.9.0
   geolocator: ^10.1.0
   geocoding: ^2.1.1
+  http: ^1.1.0
   
   # UI
   cached_network_image: ^3.3.1
