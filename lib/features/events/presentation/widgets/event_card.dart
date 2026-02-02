@@ -3,17 +3,19 @@
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/date_formatter.dart';
 import '../../domain/entities/event.dart';
+import '../providers/events_provider.dart';
 
 /// Tarjeta de evento para el listado horizontal.
 ///
 /// Muestra la imagen, título, fecha y ubicación del evento.
 /// Tiene un ancho fijo para scroll horizontal.
-class EventCard extends StatelessWidget {
+class EventCard extends ConsumerWidget {
   final Event event;
   final VoidCallback? onTap;
 
@@ -30,7 +32,8 @@ class EventCard extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final attendeeCountAsync = ref.watch(attendeeCountProvider(event.id));
     return RepaintBoundary(
       child: SizedBox(
         width: cardWidth,
@@ -47,8 +50,8 @@ class EventCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Imagen del evento
-              _buildImage(),
+              // Imagen del evento con badge de asistentes
+              _buildImageWithBadge(context, attendeeCountAsync),
 
               // Contenido
               Expanded(
@@ -130,22 +133,65 @@ class EventCard extends StatelessWidget {
     );
   }
 
-  Widget _buildImage() {
-    if (event.imageUrl != null && event.imageUrl!.isNotEmpty) {
-      return SizedBox(
-        height: imageHeight,
-        width: double.infinity,
-        child: CachedNetworkImage(
-          imageUrl: event.imageUrl!,
-          fit: BoxFit.cover,
-          memCacheWidth: (cardWidth * 2).toInt(), // 2x para pantallas high-DPI
-          memCacheHeight: (imageHeight * 2).toInt(),
-          placeholder: (context, url) => _buildPlaceholder(isLoading: true),
-          errorWidget: (context, url, error) => _buildPlaceholder(),
+  Widget _buildImageWithBadge(BuildContext context, AsyncValue<int> attendeeCountAsync) {
+    return Stack(
+      children: [
+        // Imagen
+        if (event.imageUrl != null && event.imageUrl!.isNotEmpty)
+          SizedBox(
+            height: imageHeight,
+            width: double.infinity,
+            child: CachedNetworkImage(
+              imageUrl: event.imageUrl!,
+              fit: BoxFit.cover,
+              memCacheWidth: (cardWidth * 2).toInt(),
+              memCacheHeight: (imageHeight * 2).toInt(),
+              placeholder: (context, url) => _buildPlaceholder(isLoading: true),
+              errorWidget: (context, url, error) => _buildPlaceholder(),
+            ),
+          )
+        else
+          _buildPlaceholder(),
+
+        // Badge de asistentes
+        attendeeCountAsync.when(
+          data: (count) => count > 0
+              ? Positioned(
+                  bottom: 6,
+                  right: 6,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withAlpha(180),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          PhosphorIcons.users(),
+                          size: 12,
+                          color: Colors.white,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '$count',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 11,
+                              ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              : const SizedBox.shrink(),
+          loading: () => const SizedBox.shrink(),
+          error: (_, __) => const SizedBox.shrink(),
         ),
-      );
-    }
-    return _buildPlaceholder();
+      ],
+    );
   }
 
   Widget _buildPlaceholder({bool isLoading = false}) {

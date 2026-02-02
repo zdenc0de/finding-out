@@ -320,4 +320,52 @@ class EventRepositoryImpl implements EventRepository {
       return 0;
     }
   }
+
+  @override
+  Future<List<Event>> getMyUpcomingEvents() async {
+    final currentUserId = _currentUserId;
+    print('🔍 getMyUpcomingEvents - currentUserId: $currentUserId');
+    if (currentUserId == null) return [];
+
+    try {
+      // Obtener IDs de eventos a los que voy
+      final attendanceResponse = await _client
+          .from('event_attendees')
+          .select('event_id')
+          .eq('user_id', currentUserId)
+          .eq('status', 'going');
+
+      print('🔍 attendanceResponse: $attendanceResponse');
+
+      final eventIds = (attendanceResponse as List<dynamic>)
+          .map((item) => item['event_id'] as String)
+          .toList();
+
+      print('🔍 eventIds: $eventIds');
+
+      if (eventIds.isEmpty) return [];
+
+      // Obtener eventos futuros
+      final now = DateTime.now().toUtc().toIso8601String();
+      print('🔍 now (UTC): $now');
+
+      final eventsResponse = await _client
+          .from('events')
+          .select()
+          .inFilter('id', eventIds)
+          .gte('start_date', now)
+          .order('start_date', ascending: true)
+          .limit(5);
+
+      print('🔍 eventsResponse: $eventsResponse');
+
+      return (eventsResponse as List<dynamic>)
+          .map((json) => EventModel.fromJson(json as Map<String, dynamic>))
+          .map((model) => model.toEntity())
+          .toList();
+    } catch (e) {
+      print('❌ Error en getMyUpcomingEvents: $e');
+      return [];
+    }
+  }
 }

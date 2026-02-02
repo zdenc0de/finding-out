@@ -325,3 +325,9 @@ final attendeeCountProvider =
   final repository = ref.watch(eventRepositoryProvider);
   return repository.getAttendeeCount(eventId);
 });
+
+/// Provider para obtener los próximos eventos a los que el usuario va.
+final myUpcomingEventsProvider = FutureProvider<List<Event>>((ref) async {
+  final repository = ref.watch(eventRepositoryProvider);
+  return repository.getMyUpcomingEvents();
+});

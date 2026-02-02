@@ -8,8 +8,11 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../../../core/config/router_config.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/date_formatter.dart';
 import '../../../../core/utils/string_utils.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../events/presentation/providers/events_provider.dart';
+import '../../../social/presentation/widgets/follow_button.dart';
 import '../providers/profile_provider.dart';
 
 class ProfileScreen extends ConsumerWidget {
@@ -79,6 +82,14 @@ class ProfileScreen extends ConsumerWidget {
                 label: const Text('Editar perfil'),
               ),
 
+              // ─────────────────────────────────────────────────────────────
+              // ESTADÍSTICAS DE SEGUIDORES
+              // ─────────────────────────────────────────────────────────────
+              if (user?.id != null) ...[
+                const SizedBox(height: 24),
+                FollowStatsRow(userId: user!.id),
+              ],
+
               const SizedBox(height: 32),
 
               // ─────────────────────────────────────────────────────────────
@@ -137,6 +148,14 @@ class ProfileScreen extends ConsumerWidget {
                   ],
                 ),
               ),
+
+              // ─────────────────────────────────────────────────────────────
+              // PRÓXIMOS EVENTOS: Eventos a los que el usuario asistirá
+              // ─────────────────────────────────────────────────────────────
+              const SizedBox(height: 24),
+              _buildSectionTitle(context, 'Mis próximos eventos'),
+              const SizedBox(height: 12),
+              _buildUpcomingEventsSection(context, ref),
 
               const SizedBox(height: 32),
 
@@ -243,6 +262,156 @@ class ProfileScreen extends ConsumerWidget {
   }
 
   String _getInitials(String? name) => StringUtils.getInitials(name);
+
+  String _getShortMonth(int month) {
+    const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    return months[month - 1];
+  }
+
+  Widget _buildUpcomingEventsSection(BuildContext context, WidgetRef ref) {
+    final upcomingEventsAsync = ref.watch(myUpcomingEventsProvider);
+
+    return upcomingEventsAsync.when(
+      loading: () => const Center(
+        child: Padding(
+          padding: EdgeInsets.all(16),
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
+      ),
+      error: (_, __) => _buildInfoCard(
+        context,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(
+              'No se pudieron cargar los eventos',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+            ),
+          ),
+        ],
+      ),
+      data: (events) {
+        if (events.isEmpty) {
+          return _buildInfoCard(
+            context,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    Icon(
+                      PhosphorIcons.calendarBlank(),
+                      size: 32,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'No tienes eventos próximos',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Explora eventos y marca "Voy" para verlos aquí',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          );
+        }
+
+        return _buildInfoCard(
+          context,
+          children: events.map((event) {
+            final isLast = events.last == event;
+            return Column(
+              children: [
+                _buildEventRow(context, event),
+                if (!isLast) const Divider(height: 1),
+              ],
+            );
+          }).toList(),
+        );
+      },
+    );
+  }
+
+  Widget _buildEventRow(BuildContext context, dynamic event) {
+    return InkWell(
+      onTap: () => context.push('/events/${event.id}'),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Row(
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: AppColors.primary.withAlpha(25),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    '${event.startDate.day}',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primary,
+                          height: 1,
+                        ),
+                  ),
+                  Text(
+                    _getShortMonth(event.startDate.month),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: AppColors.primary,
+                          fontSize: 10,
+                        ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    event.title,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w500,
+                        ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    DateFormatter.formatTime(event.startDate),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              PhosphorIcons.caretRight(),
+              size: 16,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   String _formatDate(DateTime? date) {
     if (date == null) return '-';

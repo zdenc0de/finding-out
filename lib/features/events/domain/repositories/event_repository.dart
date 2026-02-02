@@ -65,4 +65,7 @@ abstract class EventRepository {
 
   /// Obtiene el conteo de eventos a los que ha asistido un usuario.
   Future<int> getUserAttendedEventsCount(String userId);
+
+  /// Obtiene los próximos eventos a los que el usuario actual va.
+  Future<List<Event>> getMyUpcomingEvents();
 }
