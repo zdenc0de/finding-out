@@ -1,13 +1,13 @@
 // lib/features/location_search/data/repositories/location_search_repository_impl.dart
-// Implementación del repositorio de búsqueda de ubicaciones
+// Implementación del repositorio de búsqueda de ubicaciones usando Google Places
 
 import '../../domain/entities/place_suggestion.dart';
 import '../../domain/repositories/location_search_repository.dart';
-import '../datasources/photon_datasource.dart';
+import '../datasources/google_places_datasource.dart';
 
-/// Implementación del repositorio de búsqueda de ubicaciones usando Photon API.
+/// Implementación del repositorio de búsqueda de ubicaciones usando Google Places API.
 class LocationSearchRepositoryImpl implements LocationSearchRepository {
-  final PhotonDatasource _datasource;
+  final GooglePlacesDatasource _datasource;
 
   LocationSearchRepositoryImpl(this._datasource);
 
@@ -18,14 +18,30 @@ class LocationSearchRepositoryImpl implements LocationSearchRepository {
     double? lat,
     double? lon,
   }) async {
-    final results = await _datasource.searchPlaces(
+    // Obtener sugerencias de autocompletado
+    final suggestions = await _datasource.searchPlaces(
       query: query,
-      limit: limit,
       lat: lat,
-      lon: lon,
+      lng: lon,
     );
 
-    return results.map((model) => model.toEntity()).toList();
+    // Para cada sugerencia, obtener los detalles con coordenadas
+    final List<PlaceSuggestion> results = [];
+
+    // Limitar a los primeros 'limit' resultados para no hacer muchas llamadas
+    final limitedSuggestions = suggestions.take(limit).toList();
+
+    for (final suggestion in limitedSuggestions) {
+      final details = await _datasource.getPlaceDetails(
+        placeId: suggestion.placeId,
+      );
+
+      if (details != null) {
+        results.add(details.toEntity());
+      }
+    }
+
+    return results;
   }
 
   @override

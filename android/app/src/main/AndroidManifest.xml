@@ -12,6 +12,17 @@
         android:label="finding_out"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
+
+        <!-- Requerido por Google Maps SDK en Android 9+ -->
+        <uses-library
+            android:name="org.apache.http.legacy"
+            android:required="false" />
+
+        <!-- Google Maps API Key -->
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyBIJ8Mbu8TzsaR1_ymY448jE6eYZQ5KxTo"/>
+
         <activity
             android:name=".MainActivity"
             android:exported="true"

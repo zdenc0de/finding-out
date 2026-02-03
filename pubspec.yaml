@@ -20,8 +20,8 @@ dependencies:
   supabase_flutter: ^2.5.0
   
   # Maps & Location
-  flutter_map: ^6.1.0
-  latlong2: ^0.9.0
+  google_maps_flutter: ^2.5.0
+  latlong2: ^0.9.0         # Para estado interno de ubicación
   geolocator: ^10.1.0
   geocoding: ^2.1.1
   http: ^1.1.0

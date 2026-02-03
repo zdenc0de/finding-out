@@ -2,20 +2,35 @@
 // Utilidades para manejo de ubicación y geolocalización
 
 import 'dart:math' as math;
+import 'package:google_maps_flutter/google_maps_flutter.dart' as gmaps;
 import 'package:latlong2/latlong.dart';
 
 /// Utilidades para cálculos y operaciones con ubicaciones
 class LocationHelper {
   LocationHelper._();
 
-  /// Posición por defecto (Ciudad de México)
+  /// Posición por defecto (Ciudad de México) - latlong2
   static const LatLng defaultPosition = LatLng(19.4326, -99.1332);
+
+  /// Posición por defecto (Ciudad de México) - Google Maps
+  static const gmaps.LatLng defaultPositionGoogle =
+      gmaps.LatLng(19.4326, -99.1332);
 
   /// Zoom por defecto para el mapa
   static const double defaultZoom = 12.0;
 
   /// Zoom al centrar en ubicación del usuario
   static const double userLocationZoom = 15.0;
+
+  /// Convierte latlong2.LatLng a google_maps_flutter.LatLng
+  static gmaps.LatLng toGoogleLatLng(LatLng position) {
+    return gmaps.LatLng(position.latitude, position.longitude);
+  }
+
+  /// Convierte google_maps_flutter.LatLng a latlong2.LatLng
+  static LatLng fromGoogleLatLng(gmaps.LatLng position) {
+    return LatLng(position.latitude, position.longitude);
+  }
 
   /// Calcula la distancia en kilómetros entre dos puntos.
   ///

@@ -5,7 +5,7 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../data/datasources/photon_datasource.dart';
+import '../../data/datasources/google_places_datasource.dart';
 import '../../data/repositories/location_search_repository_impl.dart';
 import '../../domain/entities/place_suggestion.dart';
 import '../../domain/repositories/location_search_repository.dart';
@@ -14,16 +14,16 @@ import '../../domain/repositories/location_search_repository.dart';
 // PROVIDERS DE DEPENDENCIAS
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// Provider del datasource de Photon.
-final photonDatasourceProvider = Provider<PhotonDatasource>((ref) {
-  final datasource = PhotonDatasource();
+/// Provider del datasource de Google Places.
+final googlePlacesDatasourceProvider = Provider<GooglePlacesDatasource>((ref) {
+  final datasource = GooglePlacesDatasource();
   ref.onDispose(() => datasource.dispose());
   return datasource;
 });
 
 /// Provider del repositorio de búsqueda de ubicaciones.
 final locationSearchRepositoryProvider = Provider<LocationSearchRepository>((ref) {
-  final datasource = ref.watch(photonDatasourceProvider);
+  final datasource = ref.watch(googlePlacesDatasourceProvider);
   return LocationSearchRepositoryImpl(datasource);
 });
 

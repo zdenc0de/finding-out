@@ -1,10 +1,12 @@
 // lib/features/location_search/presentation/screens/map_location_picker_screen.dart
-// Pantalla para seleccionar ubicación en un mapa interactivo
+// Pantalla para seleccionar ubicación en un mapa interactivo (Google Maps)
+
+import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:latlong2/latlong.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:latlong2/latlong.dart' as ll;
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../../../core/providers/location_provider.dart';
@@ -28,7 +30,7 @@ class MapLocationResult {
 /// Pantalla para seleccionar ubicación en un mapa interactivo.
 class MapLocationPickerScreen extends ConsumerStatefulWidget {
   /// Ubicación inicial (si se está editando).
-  final LatLng? initialLocation;
+  final ll.LatLng? initialLocation;
 
   /// Dirección inicial.
   final String? initialAddress;
@@ -42,7 +44,7 @@ class MapLocationPickerScreen extends ConsumerStatefulWidget {
   /// Muestra el picker como modal y retorna el resultado.
   static Future<MapLocationResult?> show(
     BuildContext context, {
-    LatLng? initialLocation,
+    ll.LatLng? initialLocation,
     String? initialAddress,
   }) {
     return showModalBottomSheet<MapLocationResult>(
@@ -74,16 +76,21 @@ class MapLocationPickerScreen extends ConsumerStatefulWidget {
 
 class _MapLocationPickerScreenState
     extends ConsumerState<MapLocationPickerScreen> {
-  final MapController _mapController = MapController();
+  final Completer<GoogleMapController> _mapControllerCompleter = Completer();
+  GoogleMapController? _mapController;
   late LatLng _selectedPosition;
   String? _selectedAddress;
   bool _isLoadingAddress = false;
-  bool _mapReady = false;
 
   @override
   void initState() {
     super.initState();
-    _selectedPosition = widget.initialLocation ?? LocationHelper.defaultPosition;
+    // Convertir de latlong2 a google_maps si hay ubicación inicial
+    if (widget.initialLocation != null) {
+      _selectedPosition = LocationHelper.toGoogleLatLng(widget.initialLocation!);
+    } else {
+      _selectedPosition = LocationHelper.defaultPositionGoogle;
+    }
     _selectedAddress = widget.initialAddress;
 
     // Intentar usar ubicación del usuario si no hay inicial
@@ -94,19 +101,28 @@ class _MapLocationPickerScreenState
     });
   }
 
+  @override
+  void dispose() {
+    _mapController?.dispose();
+    super.dispose();
+  }
+
   Future<void> _tryUseUserLocation() async {
     final locationState = ref.read(locationNotifierProvider);
     if (locationState.hasLocation && locationState.position != null) {
+      final googlePosition = LocationHelper.toGoogleLatLng(locationState.position!);
       setState(() {
-        _selectedPosition = locationState.position!;
+        _selectedPosition = googlePosition;
       });
-      if (_mapReady) {
-        _mapController.move(_selectedPosition, 15);
-      }
+      _mapController?.animateCamera(
+        CameraUpdate.newCameraPosition(
+          CameraPosition(target: googlePosition, zoom: 15),
+        ),
+      );
     }
   }
 
-  Future<void> _onMapTap(TapPosition tapPosition, LatLng point) async {
+  Future<void> _onMapTap(LatLng point) async {
     setState(() {
       _selectedPosition = point;
       _isLoadingAddress = true;
@@ -132,12 +148,16 @@ class _MapLocationPickerScreenState
     final locationState = ref.read(locationNotifierProvider);
 
     if (locationState.hasLocation && locationState.position != null) {
-      final position = locationState.position!;
+      final googlePosition = LocationHelper.toGoogleLatLng(locationState.position!);
       setState(() {
-        _selectedPosition = position;
+        _selectedPosition = googlePosition;
       });
-      _mapController.move(position, 16);
-      _onMapTap(const TapPosition(Offset.zero, Offset.zero), position);
+      _mapController?.animateCamera(
+        CameraUpdate.newCameraPosition(
+          CameraPosition(target: googlePosition, zoom: 16),
+        ),
+      );
+      _onMapTap(googlePosition);
     }
   }
 
@@ -200,35 +220,30 @@ class _MapLocationPickerScreenState
         Expanded(
           child: Stack(
             children: [
-              FlutterMap(
-                mapController: _mapController,
-                options: MapOptions(
-                  initialCenter: _selectedPosition,
-                  initialZoom: 15,
-                  onTap: _onMapTap,
-                  onMapReady: () {
-                    setState(() => _mapReady = true);
-                  },
+              GoogleMap(
+                initialCameraPosition: CameraPosition(
+                  target: _selectedPosition,
+                  zoom: 15,
                 ),
-                children: [
-                  // Tiles de OSM
-                  TileLayer(
-                    urlTemplate:
-                        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                    userAgentPackageName: 'com.findingout.app',
+                markers: {
+                  Marker(
+                    markerId: const MarkerId('selected_location'),
+                    position: _selectedPosition,
+                    icon: BitmapDescriptor.defaultMarkerWithHue(
+                      BitmapDescriptor.hueRed,
+                    ),
                   ),
-                  // Marcador seleccionado
-                  MarkerLayer(
-                    markers: [
-                      Marker(
-                        point: _selectedPosition,
-                        width: 50,
-                        height: 50,
-                        child: _AnimatedMarker(isLoading: _isLoadingAddress),
-                      ),
-                    ],
-                  ),
-                ],
+                },
+                onMapCreated: (GoogleMapController controller) {
+                  _mapControllerCompleter.complete(controller);
+                  _mapController = controller;
+                },
+                onTap: _onMapTap,
+                myLocationEnabled: false,
+                myLocationButtonEnabled: false,
+                zoomControlsEnabled: false,
+                mapToolbarEnabled: false,
+                compassEnabled: false,
               ),
 
               // Botón mi ubicación
@@ -288,6 +303,40 @@ class _MapLocationPickerScreenState
                   ),
                 ),
               ),
+
+              // Indicador de carga de dirección
+              if (_isLoadingAddress)
+                Positioned(
+                  top: 80,
+                  left: 16,
+                  right: 16,
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(8),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: AppColors.shadow,
+                          blurRadius: 4,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                        SizedBox(width: 8),
+                        Text('Obteniendo dirección...'),
+                      ],
+                    ),
+                  ),
+                ),
             ],
           ),
         ),
@@ -378,51 +427,6 @@ class _MapLocationPickerScreenState
             ),
           ),
         ),
-      ],
-    );
-  }
-}
-
-/// Marcador animado con indicador de carga.
-class _AnimatedMarker extends StatelessWidget {
-  final bool isLoading;
-
-  const _AnimatedMarker({this.isLoading = false});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // Pin
-        Icon(
-          PhosphorIcons.mapPin(PhosphorIconsStyle.fill),
-          size: 40,
-          color: AppColors.primary,
-          shadows: const [
-            Shadow(
-              color: Colors.black38,
-              blurRadius: 4,
-              offset: Offset(0, 2),
-            ),
-          ],
-        ),
-        // Sombra/indicador de carga
-        if (isLoading)
-          const SizedBox(
-            width: 16,
-            height: 16,
-            child: CircularProgressIndicator(strokeWidth: 2),
-          )
-        else
-          Container(
-            width: 8,
-            height: 4,
-            decoration: BoxDecoration(
-              color: Colors.black26,
-              borderRadius: BorderRadius.circular(4),
-            ),
-          ),
       ],
     );
   }
