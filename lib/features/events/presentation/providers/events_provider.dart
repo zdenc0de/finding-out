@@ -331,3 +331,10 @@ final myUpcomingEventsProvider = FutureProvider<List<Event>>((ref) async {
   final repository = ref.watch(eventRepositoryProvider);
   return repository.getMyUpcomingEvents();
 });
+
+/// Provider para obtener los eventos creados por un usuario.
+final eventsByCreatorProvider =
+    FutureProvider.family<List<Event>, String>((ref, userId) async {
+  final repository = ref.watch(eventRepositoryProvider);
+  return repository.getEventsByCreator(userId);
+});

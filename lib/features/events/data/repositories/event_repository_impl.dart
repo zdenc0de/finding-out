@@ -359,4 +359,23 @@ class EventRepositoryImpl implements EventRepository {
       return [];
     }
   }
+
+  @override
+  Future<List<Event>> getEventsByCreator(String userId) async {
+    try {
+      final response = await _client
+          .from('events')
+          .select()
+          .eq('created_by', userId)
+          .order('start_date', ascending: false)
+          .limit(10);
+
+      return (response as List<dynamic>)
+          .map((json) => EventModel.fromJson(json as Map<String, dynamic>))
+          .map((model) => model.toEntity())
+          .toList();
+    } catch (e) {
+      return [];
+    }
+  }
 }

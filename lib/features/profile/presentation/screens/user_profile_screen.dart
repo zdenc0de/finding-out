@@ -7,8 +7,10 @@ import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/date_formatter.dart';
 import '../../../../core/utils/string_utils.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../events/presentation/providers/events_provider.dart';
 import '../../../social/presentation/widgets/follow_button.dart';
 import '../../domain/entities/public_profile.dart';
 import '../providers/profile_provider.dart';
@@ -194,6 +196,14 @@ class UserProfileScreen extends ConsumerWidget {
                 ],
               ),
             ),
+
+            // ─────────────────────────────────────────────────────────────────────
+            // EVENTOS CREADOS
+            // ─────────────────────────────────────────────────────────────────────
+            const SizedBox(height: 24),
+            _buildSectionTitle(context, 'Eventos creados'),
+            const SizedBox(height: 12),
+            _buildCreatedEventsSection(context, ref),
           ],
         ),
       ),
@@ -286,5 +296,143 @@ class UserProfileScreen extends ConsumerWidget {
       'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'
     ];
     return '${date.day} ${months[date.month - 1]} ${date.year}';
+  }
+
+  Widget _buildCreatedEventsSection(BuildContext context, WidgetRef ref) {
+    final eventsAsync = ref.watch(eventsByCreatorProvider(userId));
+
+    return eventsAsync.when(
+      loading: () => const Center(
+        child: Padding(
+          padding: EdgeInsets.all(16),
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
+      ),
+      error: (_, __) => _buildInfoCard(
+        context,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(
+              'No se pudieron cargar los eventos',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+            ),
+          ),
+        ],
+      ),
+      data: (events) {
+        if (events.isEmpty) {
+          return _buildInfoCard(
+            context,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    Icon(
+                      PhosphorIcons.calendarBlank(),
+                      size: 32,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'No ha creado eventos',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          );
+        }
+
+        return _buildInfoCard(
+          context,
+          children: events.map((event) {
+            final isLast = events.last == event;
+            return Column(
+              children: [
+                InkWell(
+                  onTap: () => context.push('/events/${event.id}'),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withAlpha(25),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                '${event.startDate.day}',
+                                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.primary,
+                                      height: 1,
+                                    ),
+                              ),
+                              Text(
+                                _getShortMonth(event.startDate.month),
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: AppColors.primary,
+                                      fontSize: 10,
+                                    ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                event.title,
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                DateFormatter.formatTime(event.startDate),
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                    ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Icon(
+                          PhosphorIcons.caretRight(),
+                          size: 16,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                if (!isLast) const Divider(height: 1),
+              ],
+            );
+          }).toList(),
+        );
+      },
+    );
+  }
+
+  String _getShortMonth(int month) {
+    const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    return months[month - 1];
   }
 }

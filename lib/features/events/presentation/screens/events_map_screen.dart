@@ -30,6 +30,7 @@ class _EventsMapScreenState extends ConsumerState<EventsMapScreen> {
   GoogleMapController? _mapController;
   double _currentRotation = 0;
   double _currentZoom = LocationHelper.defaultZoom;
+  Timer? _cameraDebounce;
 
   @override
   void initState() {
@@ -45,6 +46,7 @@ class _EventsMapScreenState extends ConsumerState<EventsMapScreen> {
 
   @override
   void dispose() {
+    _cameraDebounce?.cancel();
     _mapController?.dispose();
     super.dispose();
   }
@@ -63,12 +65,7 @@ class _EventsMapScreenState extends ConsumerState<EventsMapScreen> {
     });
 
     final eventMarkers = _buildEventMarkers(eventsState);
-    final userMarker = _buildUserLocationMarker(locationState);
-
-    final allMarkers = <Marker>{
-      ...eventMarkers,
-      if (userMarker != null) userMarker,
-    };
+    final userLocationCircles = _buildUserLocationCircles(locationState);
 
     return Scaffold(
       appBar: AppBar(
@@ -91,7 +88,8 @@ class _EventsMapScreenState extends ConsumerState<EventsMapScreen> {
               target: LocationHelper.defaultPositionGoogle,
               zoom: LocationHelper.defaultZoom,
             ),
-            markers: allMarkers,
+            markers: eventMarkers,
+            circles: userLocationCircles,
             myLocationEnabled: false,
             myLocationButtonEnabled: false,
             zoomControlsEnabled: false,
@@ -102,9 +100,15 @@ class _EventsMapScreenState extends ConsumerState<EventsMapScreen> {
               _mapController = controller;
             },
             onCameraMove: (CameraPosition position) {
-              setState(() {
-                _currentRotation = position.bearing * 3.14159 / 180;
-                _currentZoom = position.zoom;
+              // Debounce para evitar re-renders excesivos durante el movimiento
+              _cameraDebounce?.cancel();
+              _cameraDebounce = Timer(const Duration(milliseconds: 100), () {
+                if (mounted) {
+                  setState(() {
+                    _currentRotation = position.bearing * 3.14159 / 180;
+                    _currentZoom = position.zoom;
+                  });
+                }
               });
             },
           ),
@@ -216,17 +220,33 @@ class _EventsMapScreenState extends ConsumerState<EventsMapScreen> {
     }
   }
 
-  Marker? _buildUserLocationMarker(LocationState locationState) {
+  Set<Circle> _buildUserLocationCircles(LocationState locationState) {
     if (!locationState.hasLocation || locationState.position == null) {
-      return null;
+      return {};
     }
 
-    return Marker(
-      markerId: const MarkerId('user_location'),
-      position: LocationHelper.toGoogleLatLng(locationState.position!),
-      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
-      anchor: const Offset(0.5, 0.5),
-    );
+    final position = LocationHelper.toGoogleLatLng(locationState.position!);
+
+    return {
+      // Círculo exterior (halo/efecto de precisión)
+      Circle(
+        circleId: const CircleId('user_location_outer'),
+        center: position,
+        radius: 50, // metros
+        fillColor: AppColors.primary.withValues(alpha: 0.15),
+        strokeColor: AppColors.primary.withValues(alpha: 0.3),
+        strokeWidth: 1,
+      ),
+      // Círculo interior (punto de ubicación)
+      Circle(
+        circleId: const CircleId('user_location_inner'),
+        center: position,
+        radius: 12, // metros
+        fillColor: AppColors.primary,
+        strokeColor: Colors.white,
+        strokeWidth: 3,
+      ),
+    };
   }
 
   void _showEventBottomSheet(Event event, String categoryColor) {

@@ -68,4 +68,7 @@ abstract class EventRepository {
 
   /// Obtiene los próximos eventos a los que el usuario actual va.
   Future<List<Event>> getMyUpcomingEvents();
+
+  /// Obtiene los eventos creados por un usuario.
+  Future<List<Event>> getEventsByCreator(String userId);
 }

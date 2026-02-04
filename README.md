@@ -11,83 +11,65 @@
 | Framework | Flutter 3.3+ |
 | Estado | Riverpod |
 | Backend | Supabase (Auth, DB, Storage) |
-| Mapas | flutter_map + OpenStreetMap (actual) → Google Maps (próximamente) |
+| Mapas | Google Maps + Places API |
 | Arquitectura | Clean Architecture |
 
 ---
 
 ## Plan de Febrero 2025 - Perfeccionar la App
 
-### Semana 1 (3-9 Feb): Migración a Google Maps
+### Semana 1 (3-9 Feb): Migración a Google Maps ✅
 
-#### Día 1-2: Configuración
-- [ ] Crear proyecto en Google Cloud Console
-- [ ] Habilitar APIs: Maps SDK, Places API, Geocoding API
-- [ ] Crear API key con restricciones (Android/iOS)
-- [ ] Configurar billing (tarjeta de crédito)
-- [ ] Agregar API key a variables de entorno (.env)
+> **Completado**: Migración implementada antes del plan.
 
-#### Día 3-4: Reemplazar Mapas
-- [ ] Instalar `google_maps_flutter`
-- [ ] Migrar `EventsMapScreen` de flutter_map a Google Maps
-- [ ] Migrar `MapLocationPickerScreen` a Google Maps
-- [ ] Actualizar marcadores y estilos
+#### Configuración
+- [x] Proyecto configurado en Google Cloud Console
+- [x] APIs habilitadas: Maps SDK, Places API, Geocoding API
+- [x] API keys configuradas (Android + iOS)
 
-#### Día 5-7: Reemplazar Autocompletado
-- [ ] Instalar `google_places_flutter` o usar Places API directo
-- [ ] Reemplazar Photon por Google Places Autocomplete
-- [ ] Actualizar `AddressAutocompleteField` con nuevo provider
-- [ ] Guardar Place ID además de coordenadas (opcional)
-- [ ] Probar y ajustar UX
+#### Mapas
+- [x] `google_maps_flutter` instalado
+- [x] `EventsMapScreen` migrado a Google Maps
+- [x] `MapLocationPickerScreen` migrado a Google Maps
 
-### Semana 2 (10-16 Feb): Funcionalidades Pendientes
+#### Autocompletado
+- [x] Places API integrado (`GooglePlacesDatasource`)
+- [x] `AddressAutocompleteField` usando nuevo provider
+
+### Semana 2 (10-16 Feb): Bug Fixes y Performance ✅
+
+> **Replanificado**: Se priorizó corrección de bugs reportados antes de nuevas features.
+
+#### Bug Fixes
+- [x] Autocompletado de ubicación no mostraba resultados
+  - **Fix**: Agregado `GOOGLE_MAPS_API_KEY` a `.env`
+- [x] Perfil de otros usuarios no mostraba sus eventos
+  - **Fix**: Nuevo método `getEventsByCreator` + sección en UI
+- [x] Lag en pantalla de mapa
+  - **Fix**: Debounce de 100ms en `onCameraMove`
+
+### Semana 3 (17-23 Feb): Testing
+
+#### Tests Unitarios
+- [ ] `auth_repository_impl`
+- [ ] `event_repository_impl`
+- [ ] `profile_repository_impl`
+
+#### Tests de Widgets
+- [ ] `EventCard`
+- [ ] `EventsMapScreen`
+- [ ] `AddressAutocompleteField`
+
+### Semana 4 (24-28 Feb): Funcionalidades Nuevas
 
 #### Sistema Social
-- [ ] Notificaciones cuando amigos confirman asistencia
-- [ ] Feed de actividad de amigos
-- [ ] Invitar amigos a eventos
+- [ ] Notificaciones de amigos
+- [ ] Invitar a eventos
 
 #### Mejoras de Eventos
-- [ ] Filtros avanzados (fecha, distancia, categoría)
-- [ ] Búsqueda de eventos por texto
-- [ ] Eventos destacados/trending
-- [ ] Compartir evento (deep link)
-
-#### Perfil
-- [ ] Historial de eventos asistidos
-- [ ] Estadísticas del usuario
-- [ ] Configuración de notificaciones
-
-### Semana 3 (17-23 Feb): Pulido y UX
-
-#### Animaciones
-- [ ] Transiciones entre pantallas
-- [ ] Animaciones de carga (shimmer)
-- [ ] Feedback táctil (haptics)
-
-#### Accesibilidad
-- [ ] Revisar contraste de colores
-- [ ] Agregar labels semánticos
-- [ ] Soporte para lectores de pantalla
-
-#### Performance
-- [ ] Optimizar carga de imágenes
-- [ ] Implementar paginación en listas
-- [ ] Cache de datos offline
-
-### Semana 4 (24-28 Feb): Testing y Preparación
-
-#### Testing
-- [ ] Tests unitarios de repositorios
-- [ ] Tests de widgets críticos
-- [ ] Pruebas manuales completas en Android/iOS
-
-#### Preparación para lanzamiento
-- [ ] Configurar Firebase Crashlytics
-- [ ] Configurar analytics básicos
-- [ ] Preparar assets para stores (iconos, screenshots)
-- [ ] Escribir descripción para Play Store / App Store
-- [ ] Crear cuenta de desarrollador si no existe
+- [ ] Filtros avanzados
+- [ ] Búsqueda de eventos
+- [ ] Compartir evento
 
 ---
 
@@ -223,27 +205,29 @@ flutter build ios --release
 
 ---
 
-## Estado Actual (Febrero 2025)
+## Estado Actual (4 Feb 2025)
 
 ### Completado
 - [x] Autenticación completa (login, registro, recuperar contraseña)
 - [x] CRUD de eventos
-- [x] Mapa de eventos con marcadores
+- [x] Mapa de eventos con marcadores (optimizado)
 - [x] Sistema social (seguir usuarios, asistencia a eventos)
 - [x] Navegación con 5 tabs
-- [x] Autocompletado de direcciones (Photon API)
+- [x] Autocompletado de direcciones (Google Places API)
 - [x] Selector de ubicación en mapa
 - [x] Diseño Santorini consistente
 - [x] Perfil con estadísticas de seguidores
 - [x] "Mis próximos eventos" en perfil
+- [x] **Migración a Google Maps** (Semana 1)
+- [x] **Eventos creados en perfil de otros usuarios** (Semana 2)
+- [x] **Optimización de performance en mapa** (Semana 2)
 
 ### Pendiente
-- [ ] Migración a Google Maps
+- [ ] Tests automatizados (Semana 3)
 - [ ] Notificaciones push
 - [ ] Filtros avanzados de eventos
 - [ ] Compartir eventos
 - [ ] Modo offline
-- [ ] Tests automatizados
 
 ---
 
