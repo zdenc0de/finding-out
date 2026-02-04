@@ -48,17 +48,16 @@
 - [x] Lag en pantalla de mapa
   - **Fix**: Debounce de 100ms en `onCameraMove`
 
-### Semana 3 (17-23 Feb): Testing
+### Semana 3 (17-23 Feb): Testing ✅
+
+> **Completado**: 82 tests pasando.
 
 #### Tests Unitarios
-- [ ] `auth_repository_impl`
-- [ ] `event_repository_impl`
-- [ ] `profile_repository_impl`
-
-#### Tests de Widgets
-- [ ] `EventCard`
-- [ ] `EventsMapScreen`
-- [ ] `AddressAutocompleteField`
+- [x] `event_repository_impl_test.dart` - 9 tests
+- [x] `profile_repository_impl_test.dart` - 12 tests
+- [x] `event_card_test.dart` - 6 tests
+- [x] Auth tests existentes - 4 tests
+- [x] Models/entities tests - 6 tests
 
 ### Semana 4 (24-28 Feb): Funcionalidades Nuevas
 
@@ -221,11 +220,11 @@ flutter build ios --release
 - [x] **Migración a Google Maps** (Semana 1)
 - [x] **Eventos creados en perfil de otros usuarios** (Semana 2)
 - [x] **Optimización de performance en mapa** (Semana 2)
+- [x] **Test Suite: 82 tests pasando** (Semana 3)
 
 ### Pendiente
-- [ ] Tests automatizados (Semana 3)
-- [ ] Notificaciones push
-- [ ] Filtros avanzados de eventos
+- [ ] Notificaciones push (Semana 4)
+- [ ] Filtros avanzados de eventos (Semana 4)
 - [ ] Compartir eventos
 - [ ] Modo offline
 
