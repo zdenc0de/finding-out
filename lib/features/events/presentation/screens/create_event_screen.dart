@@ -242,12 +242,21 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                 );
 
                 if (result != null) {
+                  // Actualizar estado local
                   setState(() {
                     _locationLat = result.latitude;
                     _locationLng = result.longitude;
                     _address = result.address;
                   });
+
+                  // Retornar en formato esperado por AddressAutocompleteField
+                  return AddressSelectionResult(
+                    formattedAddress: result.address,
+                    latitude: result.latitude,
+                    longitude: result.longitude,
+                  );
                 }
+                return null;
               },
               initialAddress: _address,
               initialLat: _locationLat,

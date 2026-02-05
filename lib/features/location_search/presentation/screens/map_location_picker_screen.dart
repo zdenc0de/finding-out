@@ -41,29 +41,18 @@ class MapLocationPickerScreen extends ConsumerStatefulWidget {
     this.initialAddress,
   });
 
-  /// Muestra el picker como modal y retorna el resultado.
+  /// Muestra el picker como modal fullscreen y retorna el resultado.
   static Future<MapLocationResult?> show(
     BuildContext context, {
     ll.LatLng? initialLocation,
     String? initialAddress,
   }) {
-    return showModalBottomSheet<MapLocationResult>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.85,
-        minChildSize: 0.5,
-        maxChildSize: 0.95,
-        builder: (context, scrollController) => Container(
-          decoration: const BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-          ),
-          child: MapLocationPickerScreen(
-            initialLocation: initialLocation,
-            initialAddress: initialAddress,
-          ),
+    return Navigator.of(context).push<MapLocationResult>(
+      MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (context) => MapLocationPickerScreen(
+          initialLocation: initialLocation,
+          initialAddress: initialAddress,
         ),
       ),
     );
@@ -180,166 +169,146 @@ class _MapLocationPickerScreenState
   Widget build(BuildContext context) {
     final locationState = ref.watch(locationNotifierProvider);
 
-    return Column(
-      children: [
-        // Handle para arrastrar
-        Container(
-          margin: const EdgeInsets.symmetric(vertical: 12),
-          width: 40,
-          height: 4,
-          decoration: BoxDecoration(
-            color: AppColors.outline,
-            borderRadius: BorderRadius.circular(2),
-          ),
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Seleccionar ubicación'),
+        centerTitle: true,
+        leading: IconButton(
+          icon: Icon(PhosphorIcons.x()),
+          onPressed: () => Navigator.of(context).pop(),
         ),
-
-        // Header
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Row(
-            children: [
-              IconButton(
-                icon: Icon(PhosphorIcons.x()),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-              Expanded(
-                child: Text(
-                  'Seleccionar ubicación',
-                  style: Theme.of(context).textTheme.titleLarge,
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              const SizedBox(width: 48), // Balance
-            ],
-          ),
-        ),
-
-        const Divider(),
-
-        // Mapa
-        Expanded(
-          child: Stack(
-            children: [
-              GoogleMap(
-                initialCameraPosition: CameraPosition(
-                  target: _selectedPosition,
-                  zoom: 15,
-                ),
-                markers: {
-                  Marker(
-                    markerId: const MarkerId('selected_location'),
-                    position: _selectedPosition,
-                    icon: BitmapDescriptor.defaultMarkerWithHue(
-                      BitmapDescriptor.hueRed,
+      ),
+      body: Column(
+        children: [
+          // Mapa
+          Expanded(
+            child: Stack(
+              children: [
+                GoogleMap(
+                  initialCameraPosition: CameraPosition(
+                    target: _selectedPosition,
+                    zoom: 15,
+                  ),
+                  markers: {
+                    Marker(
+                      markerId: const MarkerId('selected_location'),
+                      position: _selectedPosition,
+                      icon: BitmapDescriptor.defaultMarkerWithHue(
+                        BitmapDescriptor.hueRed,
+                      ),
                     ),
-                  ),
-                },
-                onMapCreated: (GoogleMapController controller) {
-                  _mapControllerCompleter.complete(controller);
-                  _mapController = controller;
-                },
-                onTap: _onMapTap,
-                myLocationEnabled: false,
-                myLocationButtonEnabled: false,
-                zoomControlsEnabled: false,
-                mapToolbarEnabled: false,
-                compassEnabled: false,
-              ),
-
-              // Botón mi ubicación
-              Positioned(
-                right: 16,
-                bottom: 16,
-                child: FloatingActionButton.small(
-                  heroTag: 'my_location_picker',
-                  onPressed: locationState.isLoading ? null : _onMyLocationTap,
-                  backgroundColor: AppColors.surface,
-                  child: locationState.isLoading
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : Icon(
-                          PhosphorIcons.crosshair(),
-                          color: AppColors.primary,
-                        ),
+                  },
+                  onMapCreated: (GoogleMapController controller) {
+                    _mapControllerCompleter.complete(controller);
+                    _mapController = controller;
+                  },
+                  onTap: _onMapTap,
+                  myLocationEnabled: false,
+                  myLocationButtonEnabled: false,
+                  zoomControlsEnabled: false,
+                  mapToolbarEnabled: false,
+                  compassEnabled: true,
+                  // Habilitar gestos del mapa
+                  scrollGesturesEnabled: true,
+                  zoomGesturesEnabled: true,
+                  tiltGesturesEnabled: true,
+                  rotateGesturesEnabled: true,
                 ),
-              ),
 
-              // Instrucciones
-              Positioned(
-                top: 16,
-                left: 16,
-                right: 16,
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: AppColors.surface.withAlpha(240),
-                    borderRadius: BorderRadius.circular(8),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: AppColors.shadow,
-                        blurRadius: 8,
-                        offset: Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        PhosphorIcons.info(PhosphorIconsStyle.fill),
-                        color: AppColors.info,
-                        size: 20,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          'Toca el mapa para seleccionar la ubicación',
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              // Indicador de carga de dirección
-              if (_isLoadingAddress)
+                // Botón mi ubicación
                 Positioned(
-                  top: 80,
+                  right: 16,
+                  bottom: 16,
+                  child: FloatingActionButton.small(
+                    heroTag: 'my_location_picker',
+                    onPressed: locationState.isLoading ? null : _onMyLocationTap,
+                    backgroundColor: AppColors.surface,
+                    child: locationState.isLoading
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Icon(
+                            PhosphorIcons.crosshair(),
+                            color: AppColors.primary,
+                          ),
+                  ),
+                ),
+
+                // Instrucciones
+                Positioned(
+                  top: 16,
                   left: 16,
                   right: 16,
                   child: Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: AppColors.surface,
+                      color: AppColors.surface.withAlpha(240),
                       borderRadius: BorderRadius.circular(8),
                       boxShadow: const [
                         BoxShadow(
                           color: AppColors.shadow,
-                          blurRadius: 4,
+                          blurRadius: 8,
                           offset: Offset(0, 2),
                         ),
                       ],
                     ),
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
+                    child: Row(
                       children: [
-                        SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2),
+                        Icon(
+                          PhosphorIcons.info(PhosphorIconsStyle.fill),
+                          color: AppColors.info,
+                          size: 20,
                         ),
-                        SizedBox(width: 8),
-                        Text('Obteniendo dirección...'),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Toca el mapa para seleccionar la ubicación',
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ),
                       ],
                     ),
                   ),
                 ),
-            ],
+
+                // Indicador de carga de dirección
+                if (_isLoadingAddress)
+                  Positioned(
+                    top: 80,
+                    left: 16,
+                    right: 16,
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(8),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: AppColors.shadow,
+                            blurRadius: 4,
+                            offset: Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                          SizedBox(width: 8),
+                          Text('Obteniendo dirección...'),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
+            ),
           ),
-        ),
 
         // Panel inferior con dirección y botón confirmar
         Container(
@@ -427,7 +396,8 @@ class _MapLocationPickerScreenState
             ),
           ),
         ),
-      ],
+        ],
+      ),
     );
   }
 }

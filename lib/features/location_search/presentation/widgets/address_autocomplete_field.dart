@@ -28,7 +28,8 @@ class AddressAutocompleteField extends ConsumerStatefulWidget {
   final ValueChanged<AddressSelectionResult?> onAddressSelected;
 
   /// Callback para abrir el selector de mapa.
-  final VoidCallback? onMapPickerTap;
+  /// Debe retornar el resultado de la selección para sincronizar el campo.
+  final Future<AddressSelectionResult?> Function()? onMapPickerTap;
 
   /// Dirección inicial (para edición).
   final String? initialAddress;
@@ -184,6 +185,28 @@ class _AddressAutocompleteFieldState
         );
   }
 
+  /// Maneja el tap en el botón de mapa.
+  Future<void> _onMapPickerTap() async {
+    if (widget.onMapPickerTap == null) return;
+
+    final result = await widget.onMapPickerTap!();
+
+    if (result != null && mounted) {
+      // Actualizar el campo de texto
+      _controller.text = result.formattedAddress;
+
+      // Actualizar el provider
+      ref.read(locationSearchNotifierProvider.notifier).setManualLocation(
+            latitude: result.latitude,
+            longitude: result.longitude,
+            address: result.formattedAddress,
+          );
+
+      // Notificar al padre
+      widget.onAddressSelected(result);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final searchState = ref.watch(locationSearchNotifierProvider);
@@ -235,7 +258,7 @@ class _AddressAutocompleteFieldState
                   if (widget.onMapPickerTap != null)
                     IconButton(
                       icon: Icon(PhosphorIcons.mapTrifold()),
-                      onPressed: widget.onMapPickerTap,
+                      onPressed: _onMapPickerTap,
                       tooltip: 'Seleccionar en mapa',
                     ),
                 ],
