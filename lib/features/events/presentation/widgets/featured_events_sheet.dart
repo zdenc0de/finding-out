@@ -16,7 +16,8 @@ import '../screens/top10_events_screen.dart';
 ///
 /// Muestra los 5 eventos más relevantes basados en fecha y asistentes.
 /// Incluye botón "Top 10" para ver la lista completa.
-class FeaturedEventsSheet extends ConsumerWidget {
+/// Se puede colapsar/expandir tocando el handle.
+class FeaturedEventsSheet extends ConsumerStatefulWidget {
   /// Callback cuando se selecciona un evento (para centrar el mapa).
   final void Function(FeaturedEvent event)? onEventTap;
 
@@ -26,7 +27,47 @@ class FeaturedEventsSheet extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<FeaturedEventsSheet> createState() => _FeaturedEventsSheetState();
+}
+
+class _FeaturedEventsSheetState extends ConsumerState<FeaturedEventsSheet>
+    with SingleTickerProviderStateMixin {
+  bool _isCollapsed = false;
+  late AnimationController _animationController;
+  late Animation<double> _heightAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+    _heightAnimation = CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeInOut,
+    );
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  void _toggleCollapse() {
+    setState(() {
+      _isCollapsed = !_isCollapsed;
+      if (_isCollapsed) {
+        _animationController.forward();
+      } else {
+        _animationController.reverse();
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final featuredState = ref.watch(featuredEventsNotifierProvider);
     final locationState = ref.watch(locationNotifierProvider);
 
@@ -146,7 +187,7 @@ class FeaturedEventsSheet extends ConsumerWidget {
             final featured = topFive[index];
             return _FeaturedEventCard(
               featured: featured,
-              onTap: () => onEventTap?.call(featured),
+              onTap: () => widget.onEventTap?.call(featured),
             );
           },
         ),
@@ -159,6 +200,7 @@ class FeaturedEventsSheet extends ConsumerWidget {
     required Widget child,
     bool showHeader = true,
     VoidCallback? onTop10Tap,
+    bool allowCollapse = true,
   }) {
     return Container(
       decoration: BoxDecoration(
@@ -175,67 +217,84 @@ class FeaturedEventsSheet extends ConsumerWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Handle
-          Center(
+          // Handle clickable para colapsar/expandir
+          GestureDetector(
+            onTap: allowCollapse ? _toggleCollapse : null,
+            behavior: HitTestBehavior.opaque,
             child: Container(
-              width: 40,
-              height: 4,
-              margin: const EdgeInsets.only(top: 12, bottom: 8),
-              decoration: BoxDecoration(
-                color: AppColors.outline,
-                borderRadius: BorderRadius.circular(2),
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              child: Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColors.outline,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
               ),
             ),
           ),
 
-          // Header con título y botón Top 10
-          if (showHeader)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 4, 12, 12),
-              child: Row(
-                children: [
-                  Icon(
-                    PhosphorIcons.fire(PhosphorIconsStyle.fill),
-                    color: AppColors.tertiary,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Eventos destacados',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: onTop10Tap,
+          // Contenido animado
+          SizeTransition(
+            sizeFactor: ReverseAnimation(_heightAnimation),
+            axisAlignment: -1,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Header con título y botón Top 10
+                if (showHeader)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 0, 12, 12),
                     child: Row(
-                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(
-                          'Top 10',
-                          style: TextStyle(
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.w600,
+                        Icon(
+                          PhosphorIcons.fire(PhosphorIconsStyle.fill),
+                          color: AppColors.tertiary,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Eventos destacados',
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
                           ),
                         ),
-                        const SizedBox(width: 4),
-                        Icon(
-                          PhosphorIcons.arrowRight(),
-                          color: AppColors.primary,
-                          size: 18,
+                        TextButton(
+                          onPressed: onTop10Tap,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'Top 10',
+                                style: TextStyle(
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Icon(
+                                PhosphorIcons.arrowRight(),
+                                color: AppColors.primary,
+                                size: 18,
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
                   ),
-                ],
-              ),
+
+                child,
+
+                const SizedBox(height: 12),
+              ],
             ),
-
-          child,
-
-          const SizedBox(height: 12),
+          ),
         ],
       ),
     );
