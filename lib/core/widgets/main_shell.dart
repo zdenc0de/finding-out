@@ -3,6 +3,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../../features/events/presentation/screens/create_event_screen.dart';
 import '../../features/events/presentation/screens/events_home_screen.dart';
@@ -13,6 +14,10 @@ import 'floating_navbar.dart';
 
 /// Provider para el índice actual del tab seleccionado
 final currentTabIndexProvider = StateProvider<int>((ref) => 0);
+
+/// Provider para la ubicación de destino del mapa (cuando se navega desde un evento)
+/// Se limpia después de usarse
+final mapTargetLocationProvider = StateProvider<LatLng?>((ref) => null);
 
 /// Shell principal que envuelve las pantallas con el navbar flotante.
 ///

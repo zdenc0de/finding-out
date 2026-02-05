@@ -12,6 +12,7 @@ import '../../../../core/providers/location_provider.dart';
 import '../../../../core/services/location/location_state.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/location_helper.dart';
+import '../../../../core/widgets/main_shell.dart';
 import '../../domain/entities/event.dart';
 import '../../domain/entities/featured_event.dart';
 import '../providers/events_provider.dart';
@@ -69,6 +70,17 @@ class _EventsMapScreenState extends ConsumerState<EventsMapScreen> {
       } else if (next.status == LocationStatus.success &&
           next.position != null) {
         _animateToPosition(LocationHelper.toGoogleLatLng(next.position!));
+      }
+    });
+
+    // Listener para navegación desde detalle de evento
+    ref.listen<LatLng?>(mapTargetLocationProvider, (previous, next) {
+      if (next != null && _mapController != null) {
+        _animateToPosition(next, zoom: 16);
+        // Limpiar el provider después de usar
+        Future.microtask(() {
+          ref.read(mapTargetLocationProvider.notifier).state = null;
+        });
       }
     });
 
@@ -356,12 +368,12 @@ class _EventsMapScreenState extends ConsumerState<EventsMapScreen> {
     await ref.read(locationNotifierProvider.notifier).getCurrentLocation();
   }
 
-  Future<void> _animateToPosition(LatLng position) async {
+  Future<void> _animateToPosition(LatLng position, {double? zoom}) async {
     if (_mapController == null) return;
 
     await _mapController!.animateCamera(
       CameraUpdate.newCameraPosition(
-        CameraPosition(target: position, zoom: LocationHelper.userLocationZoom),
+        CameraPosition(target: position, zoom: zoom ?? LocationHelper.userLocationZoom),
       ),
     );
   }

@@ -5,12 +5,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/date_formatter.dart';
 import '../../../../core/utils/string_utils.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
+import '../../../../core/widgets/main_shell.dart';
 import '../providers/events_provider.dart';
 import '../widgets/attendance_buttons.dart';
 import '../widgets/friends_attending_section.dart';
@@ -138,7 +140,25 @@ class EventDetailScreen extends ConsumerWidget {
                         value: DateFormatter.formatTime(event.startDate),
                       ),
 
-                      if (event.address != null) ...[
+                      if (event.address != null &&
+                          event.locationLat != null &&
+                          event.locationLng != null) ...[
+                        const SizedBox(height: 12),
+                        _buildInfoCard(
+                          context,
+                          icon: PhosphorIcons.mapPin(PhosphorIconsStyle.fill),
+                          title: 'Ubicación',
+                          value: event.address!,
+                          onTap: () {
+                            // Setear las coordenadas destino
+                            ref.read(mapTargetLocationProvider.notifier).state =
+                                LatLng(event.locationLat!, event.locationLng!);
+                            // Navegar al mapa
+                            ref.read(currentTabIndexProvider.notifier).state = 1;
+                            context.go('/home');
+                          },
+                        ),
+                      ] else if (event.address != null) ...[
                         const SizedBox(height: 12),
                         _buildInfoCard(
                           context,
@@ -311,8 +331,9 @@ class EventDetailScreen extends ConsumerWidget {
     required PhosphorIconData icon,
     required String title,
     required String value,
+    VoidCallback? onTap,
   }) {
-    return Container(
+    final content = Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.surfaceVariant.withAlpha(100),
@@ -354,9 +375,29 @@ class EventDetailScreen extends ConsumerWidget {
               ],
             ),
           ),
+          if (onTap != null)
+            Icon(
+              PhosphorIcons.caretRight(),
+              size: 20,
+              color: AppColors.onSurfaceVariant,
+            ),
         ],
       ),
     );
+
+    if (onTap != null) {
+      return Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(12),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: content,
+        ),
+      );
+    }
+
+    return content;
   }
 }
 
