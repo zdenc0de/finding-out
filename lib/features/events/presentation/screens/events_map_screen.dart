@@ -171,7 +171,7 @@ class _EventsMapScreenState extends ConsumerState<EventsMapScreen> {
           // Controles del mapa (derecha)
           Positioned(
             right: 16,
-            bottom: 220,
+            bottom: 300,
             child: MapControls(
               mapRotation: _currentRotation,
               onZoomIn: _zoomIn,
@@ -182,11 +182,11 @@ class _EventsMapScreenState extends ConsumerState<EventsMapScreen> {
             ),
           ),
 
-          // Panel de eventos destacados (inferior)
+          // Panel de eventos destacados (inferior - encima del navbar)
           Positioned(
             left: 0,
             right: 0,
-            bottom: 0,
+            bottom: 100, // Encima del navbar flotante
             child: FeaturedEventsSheet(
               onEventTap: (FeaturedEvent featured) {
                 _animateToEvent(featured.event);

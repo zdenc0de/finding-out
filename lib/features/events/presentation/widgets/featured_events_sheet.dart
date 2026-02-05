@@ -7,6 +7,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/date_formatter.dart';
+import '../../../../core/providers/location_provider.dart';
 import '../../domain/entities/featured_event.dart';
 import '../providers/featured_events_provider.dart';
 import '../screens/top10_events_screen.dart';
@@ -27,6 +28,7 @@ class FeaturedEventsSheet extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final featuredState = ref.watch(featuredEventsNotifierProvider);
+    final locationState = ref.watch(locationNotifierProvider);
 
     if (featuredState.isLoading) {
       return _buildContainer(
@@ -40,12 +42,72 @@ class FeaturedEventsSheet extends ConsumerWidget {
       );
     }
 
+    // Si no hay ubicación, mostrar botón para activarla
+    if (!locationState.hasLocation) {
+      return _buildContainer(
+        context,
+        showHeader: false,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryContainer,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  PhosphorIcons.mapPinLine(),
+                  color: AppColors.primary,
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Activa tu ubicación',
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                    ),
+                    Text(
+                      'Para ver eventos destacados cerca de ti',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: AppColors.onSurfaceVariant,
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+              FilledButton.tonal(
+                onPressed: () {
+                  ref
+                      .read(locationNotifierProvider.notifier)
+                      .getCurrentLocation();
+                },
+                style: FilledButton.styleFrom(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                ),
+                child: const Text('Activar'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     if (featuredState.events.isEmpty) {
       return _buildContainer(
         context,
         showHeader: false,
         child: Padding(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(16),
           child: Row(
             children: [
               Icon(
@@ -173,7 +235,7 @@ class FeaturedEventsSheet extends ConsumerWidget {
 
           child,
 
-          SizedBox(height: MediaQuery.of(context).padding.bottom + 8),
+          const SizedBox(height: 12),
         ],
       ),
     );
