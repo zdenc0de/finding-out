@@ -1,5 +1,5 @@
 // lib/features/events/presentation/screens/events_map_screen.dart
-// Pantalla del mapa de eventos con Google Maps
+// Pantalla del mapa de eventos con Google Maps - Rediseño estilo Google Maps
 
 import 'dart:async';
 
@@ -13,11 +13,18 @@ import '../../../../core/services/location/location_state.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/location_helper.dart';
 import '../../domain/entities/event.dart';
+import '../../domain/entities/featured_event.dart';
 import '../providers/events_provider.dart';
+import '../providers/featured_events_provider.dart';
+import '../widgets/category_chips.dart';
 import '../widgets/event_bottom_sheet.dart';
+import '../widgets/featured_events_sheet.dart';
 import '../widgets/map_controls.dart';
+import '../widgets/map_search_bar.dart';
+import '../widgets/radius_slider.dart';
 
 /// Pantalla del mapa que muestra los eventos como marcadores.
+/// Diseño estilo Google Maps con barra de búsqueda, filtros y eventos destacados.
 class EventsMapScreen extends ConsumerStatefulWidget {
   const EventsMapScreen({super.key});
 
@@ -53,36 +60,25 @@ class _EventsMapScreenState extends ConsumerState<EventsMapScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final eventsState = ref.watch(eventsNotifierProvider);
+    final filteredEvents = ref.watch(filteredEventsProvider);
     final locationState = ref.watch(locationNotifierProvider);
 
     ref.listen<LocationState>(locationNotifierProvider, (previous, next) {
       if (next.hasError && next.errorMessage != null) {
         _showLocationError(next);
-      } else if (next.status == LocationStatus.success && next.position != null) {
+      } else if (next.status == LocationStatus.success &&
+          next.position != null) {
         _animateToPosition(LocationHelper.toGoogleLatLng(next.position!));
       }
     });
 
-    final eventMarkers = _buildEventMarkers(eventsState);
+    final eventMarkers = _buildEventMarkers(filteredEvents);
     final userLocationCircles = _buildUserLocationCircles(locationState);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Mapa de Eventos'),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: Icon(PhosphorIcons.arrowsClockwise()),
-            tooltip: 'Actualizar',
-            onPressed: () {
-              ref.read(eventsNotifierProvider.notifier).refresh();
-            },
-          ),
-        ],
-      ),
       body: Stack(
         children: [
+          // Mapa de Google
           GoogleMap(
             initialCameraPosition: const CameraPosition(
               target: LocationHelper.defaultPositionGoogle,
@@ -95,12 +91,15 @@ class _EventsMapScreenState extends ConsumerState<EventsMapScreen> {
             zoomControlsEnabled: false,
             mapToolbarEnabled: false,
             compassEnabled: false,
+            padding: EdgeInsets.only(
+              top: MediaQuery.of(context).padding.top + 120,
+              bottom: 180,
+            ),
             onMapCreated: (GoogleMapController controller) {
               _mapControllerCompleter.complete(controller);
               _mapController = controller;
             },
             onCameraMove: (CameraPosition position) {
-              // Debounce para evitar re-renders excesivos durante el movimiento
               _cameraDebounce?.cancel();
               _cameraDebounce = Timer(const Duration(milliseconds: 100), () {
                 if (mounted) {
@@ -113,15 +112,38 @@ class _EventsMapScreenState extends ConsumerState<EventsMapScreen> {
             },
           ),
 
-          if (eventsState.status == EventsStatus.loading)
+          // Overlay de carga
+          if (ref.watch(eventsNotifierProvider).status == EventsStatus.loading)
             Container(
               color: Colors.black26,
               child: const Center(child: CircularProgressIndicator()),
             ),
 
-          if (eventsState.status == EventsStatus.loaded && eventMarkers.isEmpty)
+          // === NUEVA UI ESTILO GOOGLE MAPS ===
+
+          // Barra de búsqueda superior
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 12,
+            left: 16,
+            right: 16,
+            child: MapSearchBar(
+              onFilterTap: () => showRadiusSliderSheet(context),
+            ),
+          ),
+
+          // Chips de categorías
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 72,
+            left: 0,
+            right: 0,
+            child: const CategoryChips(),
+          ),
+
+          // Mensaje cuando no hay eventos
+          if (filteredEvents.isEmpty &&
+              ref.watch(eventsNotifierProvider).status == EventsStatus.loaded)
             Positioned(
-              top: 16,
+              top: MediaQuery.of(context).padding.top + 130,
               left: 16,
               right: 16,
               child: Card(
@@ -136,7 +158,7 @@ class _EventsMapScreenState extends ConsumerState<EventsMapScreen> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
-                          'No hay eventos con ubicación disponible',
+                          'No hay eventos con los filtros seleccionados',
                           style: Theme.of(context).textTheme.bodyMedium,
                         ),
                       ),
@@ -146,9 +168,10 @@ class _EventsMapScreenState extends ConsumerState<EventsMapScreen> {
               ),
             ),
 
+          // Controles del mapa (derecha)
           Positioned(
             right: 16,
-            bottom: 120,
+            bottom: 220,
             child: MapControls(
               mapRotation: _currentRotation,
               onZoomIn: _zoomIn,
@@ -158,21 +181,38 @@ class _EventsMapScreenState extends ConsumerState<EventsMapScreen> {
               isLoadingLocation: locationState.isLoading,
             ),
           ),
+
+          // Panel de eventos destacados (inferior)
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: FeaturedEventsSheet(
+              onEventTap: (FeaturedEvent featured) {
+                _animateToEvent(featured.event);
+                _showEventBottomSheet(
+                  featured.event,
+                  featured.category.color,
+                );
+              },
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Set<Marker> _buildEventMarkers(EventsState eventsState) {
+  Set<Marker> _buildEventMarkers(Map<dynamic, List<Event>> eventsByCategory) {
     final Set<Marker> markers = {};
 
-    for (final entry in eventsState.eventsByCategory.entries) {
+    for (final entry in eventsByCategory.entries) {
       final category = entry.key;
       final events = entry.value;
       final hue = _colorHexToHue(category.color);
 
       for (final event in events) {
-        if (LocationHelper.isValidCoordinate(event.locationLat, event.locationLng)) {
+        if (LocationHelper.isValidCoordinate(
+            event.locationLat, event.locationLng)) {
           markers.add(
             Marker(
               markerId: MarkerId(event.id),
@@ -193,7 +233,6 @@ class _EventsMapScreenState extends ConsumerState<EventsMapScreen> {
       final colorValue = int.parse(hex.replaceFirst('#', '0xFF'));
       final color = Color(colorValue);
 
-      // Usar los nuevos accessors que ya retornan valores 0.0-1.0
       final r = color.r;
       final g = color.g;
       final b = color.b;
@@ -228,20 +267,18 @@ class _EventsMapScreenState extends ConsumerState<EventsMapScreen> {
     final position = LocationHelper.toGoogleLatLng(locationState.position!);
 
     return {
-      // Círculo exterior (halo/efecto de precisión)
       Circle(
         circleId: const CircleId('user_location_outer'),
         center: position,
-        radius: 50, // metros
+        radius: 50,
         fillColor: AppColors.primary.withValues(alpha: 0.15),
         strokeColor: AppColors.primary.withValues(alpha: 0.3),
         strokeWidth: 1,
       ),
-      // Círculo interior (punto de ubicación)
       Circle(
         circleId: const CircleId('user_location_inner'),
         center: position,
-        radius: 12, // metros
+        radius: 12,
         fillColor: AppColors.primary,
         strokeColor: Colors.white,
         strokeWidth: 3,
@@ -257,6 +294,20 @@ class _EventsMapScreenState extends ConsumerState<EventsMapScreen> {
       builder: (context) => EventBottomSheet(
         event: event,
         categoryColor: categoryColor,
+      ),
+    );
+  }
+
+  Future<void> _animateToEvent(Event event) async {
+    if (_mapController == null) return;
+    if (event.locationLat == null || event.locationLng == null) return;
+
+    await _mapController!.animateCamera(
+      CameraUpdate.newCameraPosition(
+        CameraPosition(
+          target: LatLng(event.locationLat!, event.locationLng!),
+          zoom: 16,
+        ),
       ),
     );
   }
@@ -286,7 +337,8 @@ class _EventsMapScreenState extends ConsumerState<EventsMapScreen> {
     final visibleRegion = await _mapController!.getVisibleRegion();
     return LatLng(
       (visibleRegion.northeast.latitude + visibleRegion.southwest.latitude) / 2,
-      (visibleRegion.northeast.longitude + visibleRegion.southwest.longitude) / 2,
+      (visibleRegion.northeast.longitude + visibleRegion.southwest.longitude) /
+          2,
     );
   }
 
@@ -296,7 +348,8 @@ class _EventsMapScreenState extends ConsumerState<EventsMapScreen> {
     final locationState = ref.read(locationNotifierProvider);
 
     if (locationState.hasLocation && locationState.position != null) {
-      _animateToPosition(LocationHelper.toGoogleLatLng(locationState.position!));
+      _animateToPosition(
+          LocationHelper.toGoogleLatLng(locationState.position!));
       return;
     }
 
@@ -325,7 +378,8 @@ class _EventsMapScreenState extends ConsumerState<EventsMapScreen> {
       onAction = () {
         ref.read(locationNotifierProvider.notifier).openLocationSettings();
       };
-    } else if (locationState.status == LocationStatus.permissionPermanentlyDenied) {
+    } else if (locationState.status ==
+        LocationStatus.permissionPermanentlyDenied) {
       actionLabel = 'Configuración';
       onAction = () {
         ref.read(locationNotifierProvider.notifier).openAppSettings();
