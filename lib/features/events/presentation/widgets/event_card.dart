@@ -75,7 +75,7 @@ class EventCard extends ConsumerWidget {
                       Row(
                         children: [
                           Icon(
-                            PhosphorIcons.calendar(),
+                            PhosphorIcons.calendar(PhosphorIconsStyle.fill),
                             size: 14,
                             color: Theme.of(context).colorScheme.primary,
                           ),
@@ -100,7 +100,7 @@ class EventCard extends ConsumerWidget {
                         Row(
                           children: [
                             Icon(
-                              PhosphorIcons.mapPin(),
+                              PhosphorIcons.mapPin(PhosphorIconsStyle.fill),
                               size: 14,
                               color: Theme.of(context).colorScheme.primary,
                             ),
@@ -175,7 +175,7 @@ class EventCard extends ConsumerWidget {
                     // Asistentes (going)
                     if (stats.going > 0) ...[
                       Icon(
-                        PhosphorIcons.users(),
+                        PhosphorIcons.users(PhosphorIconsStyle.fill),
                         size: 12,
                         color: Colors.white,
                       ),

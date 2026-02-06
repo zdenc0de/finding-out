@@ -65,8 +65,8 @@ class AttendeeStatsSection extends ConsumerWidget {
                 // Going count
                 Expanded(
                   child: _StatItem(
-                    icon: PhosphorIcons.checkCircle(PhosphorIconsStyle.fill),
-                    iconColor: AppColors.success,
+                    icon: PhosphorIcons.users(PhosphorIconsStyle.fill),
+                    iconColor: AppColors.primary,
                     count: stats.going,
                     label: stats.going == 1 ? 'va' : 'van',
                   ),
@@ -80,8 +80,8 @@ class AttendeeStatsSection extends ConsumerWidget {
                 // Interested count
                 Expanded(
                   child: _StatItem(
-                    icon: PhosphorIcons.star(PhosphorIconsStyle.fill),
-                    iconColor: AppColors.warning,
+                    icon: PhosphorIcons.heart(PhosphorIconsStyle.fill),
+                    iconColor: AppColors.error,
                     count: stats.interested,
                     label: stats.interested == 1 ? 'interesado' : 'interesados',
                   ),
