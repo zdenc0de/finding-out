@@ -33,7 +33,7 @@ class EventCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final attendeeCountAsync = ref.watch(attendeeCountProvider(event.id));
+    final attendeeStatsAsync = ref.watch(attendeeStatsProvider(event.id));
     return RepaintBoundary(
       child: SizedBox(
         width: cardWidth,
@@ -51,7 +51,7 @@ class EventCard extends ConsumerWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               // Imagen del evento con badge de asistentes
-              _buildImageWithBadge(context, attendeeCountAsync),
+              _buildImageWithBadge(context, attendeeStatsAsync),
 
               // Contenido
               Expanded(
@@ -133,7 +133,8 @@ class EventCard extends ConsumerWidget {
     );
   }
 
-  Widget _buildImageWithBadge(BuildContext context, AsyncValue<int> attendeeCountAsync) {
+  Widget _buildImageWithBadge(
+      BuildContext context, AsyncValue<({int going, int interested})> attendeeStatsAsync) {
     return Stack(
       children: [
         // Imagen
@@ -153,40 +154,66 @@ class EventCard extends ConsumerWidget {
         else
           _buildPlaceholder(),
 
-        // Badge de asistentes
-        attendeeCountAsync.when(
-          data: (count) => count > 0
-              ? Positioned(
-                  bottom: 6,
-                  right: 6,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withAlpha(180),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          PhosphorIcons.users(),
-                          size: 12,
-                          color: Colors.white,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '$count',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 11,
-                              ),
-                        ),
-                      ],
-                    ),
-                  ),
-                )
-              : const SizedBox.shrink(),
+        // Badge de asistentes e interesados
+        attendeeStatsAsync.when(
+          data: (stats) {
+            final hasStats = stats.going > 0 || stats.interested > 0;
+            if (!hasStats) return const SizedBox.shrink();
+
+            return Positioned(
+              bottom: 6,
+              right: 6,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                decoration: BoxDecoration(
+                  color: Colors.black.withAlpha(180),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Asistentes (going)
+                    if (stats.going > 0) ...[
+                      Icon(
+                        PhosphorIcons.users(),
+                        size: 12,
+                        color: Colors.white,
+                      ),
+                      const SizedBox(width: 3),
+                      Text(
+                        '${stats.going}',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 11,
+                            ),
+                      ),
+                    ],
+                    // Separador si hay ambos
+                    if (stats.going > 0 && stats.interested > 0)
+                      const SizedBox(width: 6),
+                    // Interesados
+                    if (stats.interested > 0) ...[
+                      Icon(
+                        PhosphorIcons.heart(PhosphorIconsStyle.fill),
+                        size: 12,
+                        color: AppColors.error,
+                      ),
+                      const SizedBox(width: 3),
+                      Text(
+                        '${stats.interested}',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 11,
+                            ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            );
+          },
           loading: () => const SizedBox.shrink(),
           error: (_, __) => const SizedBox.shrink(),
         ),
