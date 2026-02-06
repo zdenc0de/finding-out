@@ -80,9 +80,8 @@ class EventRepositoryImpl implements EventRepository {
       final Map<Category, List<Event>> result = {};
 
       for (final category in categories) {
-        final categoryEvents = events
-            .where((event) => event.categoryId == category.id)
-            .toList();
+        final categoryEvents =
+            events.where((event) => event.categoryId == category.id).toList();
         result[category] = categoryEvents;
       }
 
@@ -99,11 +98,8 @@ class EventRepositoryImpl implements EventRepository {
   @override
   Future<Event?> getEventById(String id) async {
     try {
-      final response = await _client
-          .from('events')
-          .select()
-          .eq('id', id)
-          .maybeSingle();
+      final response =
+          await _client.from('events').select().eq('id', id).maybeSingle();
 
       if (response == null) {
         return null;
@@ -163,10 +159,8 @@ class EventRepositoryImpl implements EventRepository {
   @override
   Future<int> getUserEventsCount(String userId) async {
     try {
-      final response = await _client
-          .from('events')
-          .select()
-          .eq('created_by', userId);
+      final response =
+          await _client.from('events').select().eq('created_by', userId);
 
       return (response as List<dynamic>).length;
     } on PostgrestException {
@@ -191,13 +185,13 @@ class EventRepositoryImpl implements EventRepository {
 
     try {
       await _client.from('event_attendees').upsert(
-        EventAttendanceModel.toJsonForUpsert(
-          eventId: eventId,
-          userId: currentUserId,
-          status: status,
-        ),
-        onConflict: 'event_id,user_id',
-      );
+            EventAttendanceModel.toJsonForUpsert(
+              eventId: eventId,
+              userId: currentUserId,
+              status: status,
+            ),
+            onConflict: 'event_id,user_id',
+          );
     } on PostgrestException catch (e) {
       throw EventException(e.message);
     }
@@ -284,7 +278,8 @@ class EventRepositoryImpl implements EventRepository {
           .inFilter('id', attendeeIds);
 
       return (profilesResponse as List<dynamic>)
-          .map((json) => PublicProfileModel.fromJson(json as Map<String, dynamic>))
+          .map((json) =>
+              PublicProfileModel.fromJson(json as Map<String, dynamic>))
           .map((model) => model.toEntity())
           .toList();
     } catch (e) {
@@ -308,12 +303,54 @@ class EventRepositoryImpl implements EventRepository {
   }
 
   @override
-  Future<int> getUserAttendedEventsCount(String userId) async {
+  Future<({int going, int interested})> getAttendeeStats(String eventId) async {
     try {
       final response = await _client
           .from('event_attendees')
+          .select('status')
+          .eq('event_id', eventId);
+
+      final attendees = response as List<dynamic>;
+      int going = 0;
+      int interested = 0;
+
+      for (final attendee in attendees) {
+        final status = attendee['status'] as String;
+        if (status == 'going') {
+          going++;
+        } else if (status == 'interested') {
+          interested++;
+        }
+      }
+
+      return (going: going, interested: interested);
+    } catch (e) {
+      return (going: 0, interested: 0);
+    }
+  }
+
+  @override
+  Future<Category?> getCategoryById(String categoryId) async {
+    try {
+      final response = await _client
+          .from('categories')
           .select()
-          .eq('user_id', userId);
+          .eq('id', categoryId)
+          .maybeSingle();
+
+      if (response == null) return null;
+
+      return CategoryModel.fromJson(response).toEntity();
+    } catch (e) {
+      return null;
+    }
+  }
+
+  @override
+  Future<int> getUserAttendedEventsCount(String userId) async {
+    try {
+      final response =
+          await _client.from('event_attendees').select().eq('user_id', userId);
 
       return (response as List<dynamic>).length;
     } catch (e) {

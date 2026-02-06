@@ -43,6 +43,7 @@ dependencies:
   json_annotation: ^4.9.0 # <--- AGREGADO
   flutter_dotenv: ^5.1.0  # Variables de entorno
   phosphor_flutter: ^2.1.0
+  share_plus: ^10.0.0       # Compartir contenido
 
 dev_dependencies:
   flutter_test:

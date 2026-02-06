@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/date_formatter.dart';
@@ -15,6 +16,8 @@ import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../../../core/widgets/main_shell.dart';
 import '../providers/events_provider.dart';
 import '../widgets/attendance_buttons.dart';
+import '../widgets/attendee_stats_section.dart';
+import '../widgets/category_badge.dart';
 import '../widgets/friends_attending_section.dart';
 
 /// Pantalla de detalle de un evento.
@@ -71,6 +74,27 @@ class EventDetailScreen extends ConsumerWidget {
                     ),
                   ),
                 ),
+                actions: [
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8.0),
+                    child: CircleAvatar(
+                      backgroundColor: Colors.black.withAlpha(80),
+                      child: IconButton(
+                        icon: Icon(
+                          PhosphorIcons.shareFat(PhosphorIconsStyle.fill),
+                          color: Colors.white,
+                        ),
+                        onPressed: () => _shareEvent(
+                          context,
+                          title: event.title,
+                          description: event.description,
+                          date: event.startDate,
+                          address: event.address,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
                 flexibleSpace: FlexibleSpaceBar(
                   stretchModes: const [StretchMode.zoomBackground],
                   background: Stack(
@@ -115,14 +139,24 @@ class EventDetailScreen extends ConsumerWidget {
                       // Título
                       Text(
                         event.title,
-                        style:
-                            Theme.of(context).textTheme.headlineMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.onSurface,
-                                  height: 1.2,
-                                ),
+                        style: Theme.of(context)
+                            .textTheme
+                            .headlineMedium
+                            ?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.onSurface,
+                              height: 1.2,
+                            ),
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 12),
+
+                      // Badge de categoría
+                      CategoryBadge(categoryId: event.categoryId),
+                      const SizedBox(height: 20),
+
+                      // Estadísticas de asistentes
+                      AttendeeStatsSection(eventId: eventId),
+                      const SizedBox(height: 20),
 
                       // Info cards
                       _buildInfoCard(
@@ -154,7 +188,8 @@ class EventDetailScreen extends ConsumerWidget {
                             ref.read(mapTargetLocationProvider.notifier).state =
                                 LatLng(event.locationLat!, event.locationLng!);
                             // Navegar al mapa
-                            ref.read(currentTabIndexProvider.notifier).state = 1;
+                            ref.read(currentTabIndexProvider.notifier).state =
+                                1;
                             context.go('/home');
                           },
                         ),
@@ -178,18 +213,20 @@ class EventDetailScreen extends ConsumerWidget {
                         const SizedBox(height: 32),
                         Text(
                           'Acerca del evento',
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.onSurface,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.onSurface,
+                                  ),
                         ),
                         const SizedBox(height: 12),
                         Text(
                           event.description!,
-                          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                color: AppColors.onSurfaceVariant,
-                                height: 1.6,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                    color: AppColors.onSurfaceVariant,
+                                    height: 1.6,
+                                  ),
                         ),
                       ],
 
@@ -201,10 +238,11 @@ class EventDetailScreen extends ConsumerWidget {
                         const SizedBox(height: 32),
                         Text(
                           'Organizador',
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.onSurface,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.onSurface,
+                                  ),
                         ),
                         const SizedBox(height: 12),
                         _CreatorCard(creatorId: event.createdBy!),
@@ -220,6 +258,47 @@ class EventDetailScreen extends ConsumerWidget {
           );
         },
       ),
+    );
+  }
+
+  /// Comparte el evento usando el sistema de compartir nativo.
+  void _shareEvent(
+    BuildContext context, {
+    required String title,
+    String? description,
+    required DateTime date,
+    String? address,
+  }) {
+    final buffer = StringBuffer();
+
+    // Título con emoji
+    buffer.writeln('🎉 $title');
+    buffer.writeln();
+
+    // Fecha y hora
+    buffer.writeln('📅 ${DateFormatter.formatLongDate(date)}');
+    buffer.writeln('🕐 ${DateFormatter.formatTime(date)}');
+
+    // Ubicación si está disponible
+    if (address != null && address.isNotEmpty) {
+      buffer.writeln('📍 $address');
+    }
+
+    // Descripción truncada
+    if (description != null && description.isNotEmpty) {
+      buffer.writeln();
+      final truncatedDesc = description.length > 150
+          ? '${description.substring(0, 150)}...'
+          : description;
+      buffer.writeln(truncatedDesc);
+    }
+
+    buffer.writeln();
+    buffer.writeln('¡Descúbrelo en Finding Out! 🌴');
+
+    Share.share(
+      buffer.toString(),
+      subject: title,
     );
   }
 
@@ -461,17 +540,19 @@ class _CreatorCard extends ConsumerWidget {
                           creator.displayName?.isNotEmpty == true
                               ? creator.displayName!
                               : 'Usuario',
-                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.onSurface,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.titleSmall?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.onSurface,
+                                  ),
                         ),
                         const SizedBox(height: 2),
                         Text(
                           'Ver perfil',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: AppColors.primary,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: AppColors.primary,
+                                  ),
                         ),
                       ],
                     ),

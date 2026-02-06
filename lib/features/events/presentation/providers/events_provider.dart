@@ -326,6 +326,21 @@ final attendeeCountProvider =
   return repository.getAttendeeCount(eventId);
 });
 
+/// Provider para obtener estadísticas de asistentes (going e interested).
+final attendeeStatsProvider =
+    FutureProvider.family<({int going, int interested}), String>(
+        (ref, eventId) async {
+  final repository = ref.watch(eventRepositoryProvider);
+  return repository.getAttendeeStats(eventId);
+});
+
+/// Provider para obtener una categoría por su ID.
+final categoryByIdProvider =
+    FutureProvider.family<Category?, String>((ref, categoryId) async {
+  final repository = ref.watch(eventRepositoryProvider);
+  return repository.getCategoryById(categoryId);
+});
+
 /// Provider para obtener los próximos eventos a los que el usuario va.
 final myUpcomingEventsProvider = FutureProvider<List<Event>>((ref) async {
   final repository = ref.watch(eventRepositoryProvider);

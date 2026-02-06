@@ -63,6 +63,12 @@ abstract class EventRepository {
   /// Obtiene el conteo total de asistentes a un evento.
   Future<int> getAttendeeCount(String eventId);
 
+  /// Obtiene estadísticas de asistentes (going e interested).
+  Future<({int going, int interested})> getAttendeeStats(String eventId);
+
+  /// Obtiene una categoría por su ID.
+  Future<Category?> getCategoryById(String categoryId);
+
   /// Obtiene el conteo de eventos a los que ha asistido un usuario.
   Future<int> getUserAttendedEventsCount(String userId);
 
