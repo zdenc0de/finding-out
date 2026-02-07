@@ -27,7 +27,8 @@ class FeaturedEventsSheet extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<FeaturedEventsSheet> createState() => _FeaturedEventsSheetState();
+  ConsumerState<FeaturedEventsSheet> createState() =>
+      _FeaturedEventsSheetState();
 }
 
 class _FeaturedEventsSheetState extends ConsumerState<FeaturedEventsSheet>
@@ -205,12 +206,17 @@ class _FeaturedEventsSheetState extends ConsumerState<FeaturedEventsSheet>
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        border: const Border(
+          top: BorderSide(
+            color: Color(0x10000000),
+            width: 0.5,
+          ),
+        ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.shadow.withAlpha(50),
-            blurRadius: 20,
-            offset: const Offset(0, -4),
+            color: AppColors.shadow.withAlpha(30),
+            blurRadius: 10,
+            offset: const Offset(0, -2),
           ),
         ],
       ),
@@ -259,7 +265,10 @@ class _FeaturedEventsSheetState extends ConsumerState<FeaturedEventsSheet>
                         Expanded(
                           child: Text(
                             'Eventos destacados',
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(
                                   fontWeight: FontWeight.bold,
                                 ),
                           ),

@@ -1,15 +1,15 @@
 // lib/core/widgets/floating_navbar.dart
-// Navbar flotante con diseño elíptico centrado - 5 items
+// Bottom navbar fijo estilo Instagram - 5 items
 
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../theme/app_colors.dart';
 
-/// Navbar flotante con diseño elíptico/pill que flota sobre el contenido.
+/// Bottom navbar fijo estilo Instagram.
 ///
-/// Se posiciona en la parte inferior de la pantalla con padding,
-/// centrado horizontalmente con forma de cápsula/elipse.
+/// Se posiciona en la parte inferior de la pantalla, ocupando todo el ancho,
+/// con soporte para safe area en dispositivos con notch o barra de navegación.
 ///
 /// Items:
 /// - 0: Eventos (lista)
@@ -32,77 +32,77 @@ class FloatingNavbar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
+
     return Positioned(
       left: 0,
       right: 0,
-      bottom: 24,
-      child: Center(
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(50),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.shadow.withAlpha(40),
-                blurRadius: 20,
-                offset: const Offset(0, 8),
-                spreadRadius: 0,
-              ),
-              BoxShadow(
-                color: AppColors.shadow.withAlpha(20),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-                spreadRadius: 0,
-              ),
-            ],
+      bottom: 0,
+      child: Container(
+        padding: EdgeInsets.only(
+          left: 16,
+          right: 16,
+          top: 6,
+          bottom: bottomPadding > 0 ? bottomPadding : 8,
+        ),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          border: Border(
+            top: BorderSide(
+              color: AppColors.shadow.withAlpha(20),
+              width: 0.5,
+            ),
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Eventos
-              _NavbarItem(
-                icon: PhosphorIcons.house(PhosphorIconsStyle.regular),
-                activeIcon: PhosphorIcons.house(PhosphorIconsStyle.fill),
-                label: 'Eventos',
-                isSelected: currentIndex == 0,
-                onTap: () => onTap(0),
-              ),
-              const SizedBox(width: 4),
-              // Mapa
-              _NavbarItem(
-                icon: PhosphorIcons.mapTrifold(PhosphorIconsStyle.regular),
-                activeIcon: PhosphorIcons.mapTrifold(PhosphorIconsStyle.fill),
-                label: 'Mapa',
-                isSelected: currentIndex == 1,
-                onTap: () => onTap(1),
-              ),
-              const SizedBox(width: 4),
-              // Crear evento (+) - Botón especial
-              _CreateButton(
-                isSelected: currentIndex == 2,
-                onTap: () => onTap(2),
-              ),
-              const SizedBox(width: 4),
-              // Perfil
-              _NavbarItem(
-                icon: PhosphorIcons.user(PhosphorIconsStyle.regular),
-                activeIcon: PhosphorIcons.user(PhosphorIconsStyle.fill),
-                label: 'Perfil',
-                isSelected: currentIndex == 3,
-                onTap: () => onTap(3),
-              ),
-              const SizedBox(width: 4),
-              // Buscar usuarios
-              _NavbarItem(
-                  icon: PhosphorIcons.users(PhosphorIconsStyle.regular),
-                activeIcon: PhosphorIcons.users(PhosphorIconsStyle.fill),
-                label: 'Buscar',
-                isSelected: currentIndex == 4,
-                onTap: () => onTap(4),
-              ),
-            ],
-          ),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.shadow.withAlpha(15),
+              blurRadius: 10,
+              offset: const Offset(0, -2),
+              spreadRadius: 0,
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            // Eventos
+            _NavbarItem(
+              icon: PhosphorIcons.house(PhosphorIconsStyle.regular),
+              activeIcon: PhosphorIcons.house(PhosphorIconsStyle.fill),
+              label: 'Eventos',
+              isSelected: currentIndex == 0,
+              onTap: () => onTap(0),
+            ),
+            // Mapa
+            _NavbarItem(
+              icon: PhosphorIcons.mapTrifold(PhosphorIconsStyle.regular),
+              activeIcon: PhosphorIcons.mapTrifold(PhosphorIconsStyle.fill),
+              label: 'Mapa',
+              isSelected: currentIndex == 1,
+              onTap: () => onTap(1),
+            ),
+            // Crear evento (+) - Botón especial
+            _CreateButton(
+              isSelected: currentIndex == 2,
+              onTap: () => onTap(2),
+            ),
+            // Perfil
+            _NavbarItem(
+              icon: PhosphorIcons.user(PhosphorIconsStyle.regular),
+              activeIcon: PhosphorIcons.user(PhosphorIconsStyle.fill),
+              label: 'Perfil',
+              isSelected: currentIndex == 3,
+              onTap: () => onTap(3),
+            ),
+            // Buscar usuarios
+            _NavbarItem(
+              icon: PhosphorIcons.users(PhosphorIconsStyle.regular),
+              activeIcon: PhosphorIcons.users(PhosphorIconsStyle.fill),
+              label: 'Buscar',
+              isSelected: currentIndex == 4,
+              onTap: () => onTap(4),
+            ),
+          ],
         ),
       ),
     );
@@ -124,34 +124,51 @@ class _CreateButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeInOut,
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: AppColors.primary,
-          borderRadius: BorderRadius.circular(40),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: AppColors.primary.withAlpha(80),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ]
-              : null,
-        ),
-        child: Icon(
-          PhosphorIcons.plus(PhosphorIconsStyle.bold),
-          color: AppColors.onPrimary,
-          size: 24,
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: AppColors.primary,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: isSelected
+                    ? [
+                        BoxShadow(
+                          color: AppColors.primary.withAlpha(80),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ]
+                    : null,
+              ),
+              child: Icon(
+                PhosphorIcons.plus(PhosphorIconsStyle.bold),
+                color: AppColors.onPrimary,
+                size: 20,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Crear',
+              style: TextStyle(
+                color:
+                    isSelected ? AppColors.primary : AppColors.onSurfaceVariant,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                fontSize: 10,
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
-/// Item individual del navbar con animación de selección
+/// Item individual del navbar estilo Instagram
 class _NavbarItem extends StatelessWidget {
   const _NavbarItem({
     required this.icon,
@@ -171,36 +188,28 @@ class _NavbarItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeInOut,
-        padding: EdgeInsets.symmetric(
-          horizontal: isSelected ? 16 : 12,
-          vertical: 12,
-        ),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary : Colors.transparent,
-          borderRadius: BorderRadius.circular(40),
-        ),
-        child: Row(
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
               isSelected ? activeIcon : icon,
-              color: isSelected ? AppColors.onPrimary : AppColors.onSurfaceVariant,
-              size: 22,
+              color:
+                  isSelected ? AppColors.primary : AppColors.onSurfaceVariant,
+              size: 24,
             ),
-            if (isSelected) ...[
-              const SizedBox(width: 6),
-              Text(
-                label,
-                style: const TextStyle(
-                  color: AppColors.onPrimary,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 13,
-                ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(
+                color:
+                    isSelected ? AppColors.primary : AppColors.onSurfaceVariant,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                fontSize: 10,
               ),
-            ],
+            ),
           ],
         ),
       ),

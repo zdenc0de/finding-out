@@ -198,7 +198,7 @@ class _EventsMapScreenState extends ConsumerState<EventsMapScreen> {
           Positioned(
             left: 0,
             right: 0,
-            bottom: 100, // Encima del navbar flotante
+            bottom: 56, // Altura exacta del navbar para quedar pegado
             child: FeaturedEventsSheet(
               onEventTap: (FeaturedEvent featured) {
                 _animateToEvent(featured.event);
@@ -373,7 +373,8 @@ class _EventsMapScreenState extends ConsumerState<EventsMapScreen> {
 
     await _mapController!.animateCamera(
       CameraUpdate.newCameraPosition(
-        CameraPosition(target: position, zoom: zoom ?? LocationHelper.userLocationZoom),
+        CameraPosition(
+            target: position, zoom: zoom ?? LocationHelper.userLocationZoom),
       ),
     );
   }
