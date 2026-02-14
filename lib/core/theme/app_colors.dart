@@ -144,4 +144,26 @@ abstract class AppColors {
 
   /// Fondo de input - Blanco
   static const Color inputFill = Color(0xFFFFFFFF);
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // COLORES PARA LOGIN SCREEN
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Fondo de inputs en login - Azul muy tenue
+  static const Color loginInputFill = Color(0xFFEDF2FF);
+
+  /// Borde de inputs en login - Azul claro sutil
+  static const Color loginInputBorder = Color(0xFFC8D6FF);
+
+  /// Gradiente del botón Continue - Inicio
+  static const Color loginGradientStart = Color(0xFF2B8FFF);
+
+  /// Gradiente del botón Continue - Fin
+  static const Color loginGradientEnd = Color(0xFF1A6FD4);
+
+  /// Fondo del card glassmorphism en login
+  static const Color loginCardBackground = Color(0xF2FFFFFF);
+
+  /// Color de fondo cálido del login (crema)
+  static const Color loginBackground = Color(0xFFFAF6F1);
 }
