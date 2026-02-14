@@ -179,13 +179,13 @@ class _HeroPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
             deepBlack,
-            const Color(0xFF1A1A2E),
+            Color(0xFF1A1A2E),
             deepBlack,
           ],
         ),
@@ -665,7 +665,7 @@ class _FeaturedEventPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 24),
                   // Event title
-                  Text(
+                  const Text(
                     'Global\nCreative\nSummit',
                     style: TextStyle(
                       fontFamily: 'Georgia',
@@ -685,7 +685,7 @@ class _FeaturedEventPage extends StatelessWidget {
               child: Container(
                 margin: const EdgeInsets.symmetric(horizontal: 24),
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
+                  gradient: const LinearGradient(
                     colors: [
                       accentOrange,
                       accentPurple,

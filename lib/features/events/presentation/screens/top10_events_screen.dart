@@ -189,7 +189,7 @@ class _Top10EventCard extends StatelessWidget {
                         )
                       : Text(
                           '$rank',
-                          style: TextStyle(
+                          style: const TextStyle(
                             color: AppColors.onSurfaceVariant,
                             fontWeight: FontWeight.bold,
                             fontSize: 16,

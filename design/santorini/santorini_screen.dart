@@ -94,7 +94,7 @@ class _SantoriniTitlePage extends StatelessWidget {
             children: [
               const Spacer(),
               // Rotated Santorini text
-              Expanded(
+              const Expanded(
                 flex: 8,
                 child: Center(
                   child: RotatedBox(

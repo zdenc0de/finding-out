@@ -4,7 +4,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/providers/location_provider.dart';
-import '../../../../core/services/location/location_state.dart';
 import '../../../../core/utils/distance_calculator.dart';
 import '../../domain/entities/category.dart';
 import '../../domain/entities/event.dart';
@@ -184,7 +183,7 @@ class FeaturedEventsNotifier extends StateNotifier<FeaturedEventsState> {
 
       state = FeaturedEventsState(events: scoredEvents);
     } catch (e) {
-      state = FeaturedEventsState(
+      state = const FeaturedEventsState(
         errorMessage: 'Error al calcular eventos destacados',
       );
     }

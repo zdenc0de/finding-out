@@ -178,7 +178,7 @@ class _AvatarPickerFieldState extends ConsumerState<AvatarPickerField> {
               if (_uploadedUrl != null || _selectedFile != null)
                 ListTile(
                   leading: Icon(PhosphorIcons.trash(), color: AppColors.error),
-                  title: Text('Eliminar foto', style: TextStyle(color: AppColors.error)),
+                  title: const Text('Eliminar foto', style: TextStyle(color: AppColors.error)),
                   onTap: () {
                     Navigator.pop(context);
                     _removeImage();

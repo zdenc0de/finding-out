@@ -132,7 +132,7 @@ void main() {
 
       test('debe generar patrón ILIKE correcto', () {
         const query = 'García';
-        final ilikePattern = '%$query%';
+        const ilikePattern = '%$query%';
         
         expect(ilikePattern, '%García%');
       });

@@ -278,7 +278,7 @@ class _FeaturedEventsSheetState extends ConsumerState<FeaturedEventsSheet>
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Text(
+                              const Text(
                                 'Top 10',
                                 style: TextStyle(
                                   color: AppColors.primary,
