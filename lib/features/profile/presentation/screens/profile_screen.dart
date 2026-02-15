@@ -175,6 +175,9 @@ class ProfileScreen extends ConsumerWidget {
                   ),
                 ),
               ),
+
+              // Espacio para que el contenido no quede detrás del navbar
+              const SizedBox(height: 80),
             ],
           ),
         ),

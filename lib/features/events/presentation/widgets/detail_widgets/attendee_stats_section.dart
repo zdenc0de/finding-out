@@ -5,8 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
-import '../../../../core/theme/app_colors.dart';
-import '../providers/events_provider.dart';
+import '../../../../../core/theme/app_colors.dart';
+import '../../providers/events_provider.dart';
 
 /// Widget que muestra las estadísticas de asistencia a un evento.
 ///

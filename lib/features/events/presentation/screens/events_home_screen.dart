@@ -1,5 +1,6 @@
 // lib/features/events/presentation/screens/events_home_screen.dart
-// Pantalla principal de eventos con listados horizontales por categoría
+// Pantalla principal de eventos con diseño inmersivo
+// Diseño basado en: Netflix meets Eventbrite
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,13 +8,17 @@ import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../domain/entities/event.dart';
 import '../providers/events_provider.dart';
-import '../widgets/category_section.dart';
+import '../widgets/shared/category_section.dart';
+import '../widgets/home_widgets/friends_activity_section.dart';
+import '../widgets/home_widgets/hero_event_banner.dart';
+import '../widgets/home_widgets/quick_filter_bar.dart';
+import '../widgets/home_widgets/stories_rail.dart';
+import '../widgets/home_widgets/trending_events_section.dart';
 
-/// Pantalla principal que muestra eventos agrupados por categoría.
-///
-/// Reemplaza la HomeScreen original y muestra listados horizontales
-/// de eventos organizados por categoría (Música, Deportes, etc.).
+/// Pantalla principal renovada con diseño inmersivo.
 class EventsHomeScreen extends ConsumerStatefulWidget {
   const EventsHomeScreen({super.key});
 
@@ -25,7 +30,7 @@ class _EventsHomeScreenState extends ConsumerState<EventsHomeScreen> {
   @override
   void initState() {
     super.initState();
-    // Cargar eventos al iniciar la pantalla
+    // Cargar eventos al iniciar
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(eventsNotifierProvider.notifier).loadEventsGroupedByCategory();
     });
@@ -34,25 +39,264 @@ class _EventsHomeScreenState extends ConsumerState<EventsHomeScreen> {
   @override
   Widget build(BuildContext context) {
     final eventsState = ref.watch(eventsNotifierProvider);
+    final authState = ref.watch(authNotifierProvider);
+    final user = authState.user;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Finding Out'),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: Icon(PhosphorIcons.magnifyingGlass()),
-            tooltip: 'Buscar eventos',
-            onPressed: () => _showSearchSheet(context),
-          ),
-        ],
+      backgroundColor: AppColors.background,
+      body: RefreshIndicator(
+        onRefresh: () async {
+          await ref.read(eventsNotifierProvider.notifier).refresh();
+        },
+        child: CustomScrollView(
+          physics: const BouncingScrollPhysics(),
+          slivers: [
+            // 1. Encabezado fijo (Ubicación + Búsqueda + Perfil)
+            SliverAppBar(
+              pinned: true,
+              floating: true,
+              snap: true,
+              backgroundColor: AppColors.background,
+              surfaceTintColor: AppColors.background,
+              elevation: 0,
+              toolbarHeight: 70,
+              title: Row(
+                children: [
+                  // Chip de ubicación
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: AppColors.surfaceVariant,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          PhosphorIcons.mapPin(PhosphorIconsStyle.fill),
+                          color: AppColors.primary,
+                          size: 16,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Monterrey', // TODO: Hacer dinámico
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.onSurface,
+                              ),
+                        ),
+                        const SizedBox(width: 4),
+                        Icon(
+                          PhosphorIcons.caretDown(),
+                          color: AppColors.onSurfaceVariant,
+                          size: 12,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Spacer(),
+                  // Avatar de perfil
+                  GestureDetector(
+                    onTap: () => context.push('/profile'),
+                    child: CircleAvatar(
+                      radius: 20,
+                      backgroundColor: AppColors.primaryContainer,
+                      backgroundImage: user?.avatarUrl != null
+                          ? NetworkImage(user!.avatarUrl!)
+                          : null,
+                      child: user?.avatarUrl == null
+                          ? Text(
+                              user?.displayName?.isNotEmpty == true
+                                  ? user!.displayName![0]
+                                  : 'U',
+                              style: const TextStyle(
+                                color: AppColors.primary,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            )
+                          : null,
+                    ),
+                  ),
+                ],
+              ),
+              bottom: PreferredSize(
+                preferredSize: const Size.fromHeight(60),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                  child: GestureDetector(
+                    onTap: () => _showSearchSheet(context),
+                    child: Container(
+                      height: 48,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      decoration: BoxDecoration(
+                        color: AppColors.surfaceVariant,
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(color: AppColors.outline),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            PhosphorIcons.magnifyingGlass(),
+                            color: AppColors.onSurfaceVariant,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 12),
+                          Text(
+                            'Buscar eventos, lugares...',
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  color: AppColors.onSurfaceVariant,
+                                ),
+                          ),
+                          const Spacer(),
+                          Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: AppColors.surface,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: AppColors.outlineVariant),
+                            ),
+                            child: Icon(
+                              PhosphorIcons.slidersHorizontal(),
+                              color: AppColors.onSurface,
+                              size: 16,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+            // 2. Rail de stories (En vivo ahora)
+            const SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 16),
+                child: StoriesRail(),
+              ),
+            ),
+
+            // 3. Banner hero de evento destacado
+            SliverToBoxAdapter(
+              child: _buildHeroSection(eventsState),
+            ),
+
+            // 4. Filtros rápidos
+            const SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 24),
+                child: QuickFilterBar(),
+              ),
+            ),
+
+            // 5. Trending cerca de ti
+            SliverToBoxAdapter(
+              child: _buildTrendingSection(eventsState),
+            ),
+
+            // 6. Actividad de amigos
+            const SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.only(bottom: 16),
+                child: FriendsActivitySection(),
+              ),
+            ),
+            
+            // 7. Categorías
+            _buildCategoryLists(eventsState),
+
+            // Espacio inferior para FAB/Navbar
+            const SliverPadding(padding: EdgeInsets.only(bottom: 100)),
+          ],
+        ),
       ),
-      body: _buildBody(eventsState),
+    );
+  }
+
+  /// Aplana todos los eventos de todas las categorías en una sola lista.
+  List<Event> _getAllEvents(EventsState state) {
+    return state.eventsByCategory.values.expand((e) => e).toList();
+  }
+
+  Widget _buildHeroSection(EventsState state) {
+    if (state.status == EventsStatus.loading) {
+      return const SizedBox(
+        height: 380,
+        child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+      );
+    }
+
+    final allEvents = _getAllEvents(state);
+    if (allEvents.isEmpty) return const SizedBox.shrink();
+
+    final featuredEvent = allEvents.first;
+
+    return HeroEventBanner(
+      event: featuredEvent,
+      onTap: () => context.push('/events/${featuredEvent.id}'),
+    );
+  }
+
+  Widget _buildTrendingSection(EventsState state) {
+    final allEvents = _getAllEvents(state);
+    if (allEvents.length <= 1) return const SizedBox.shrink();
+
+    // Skip the first event (already shown in hero) and take next 5
+    final trendingEvents = allEvents.skip(1).take(5).toList();
+
+    return TrendingEventsSection(
+      events: trendingEvents,
+      onEventTap: (Event event) => context.push('/events/${event.id}'),
+    );
+  }
+
+  Widget _buildCategoryLists(EventsState state) {
+     final categories = state.sortedCategories;
+     
+     if (categories.isEmpty && state.status != EventsStatus.loading) {
+       return SliverToBoxAdapter(
+         child: Center(
+           child: Padding(
+             padding: const EdgeInsets.all(32.0),
+             child: Text(
+               'No se encontraron eventos',
+               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                 color: AppColors.onSurfaceVariant,
+               ),
+             ),
+           ),
+         ),
+       );
+     }
+
+    return SliverList(
+      delegate: SliverChildBuilderDelegate(
+        (context, index) {
+          final category = categories[index];
+          final events = state.eventsByCategory[category] ?? [];
+          
+          if (events.isEmpty) return const SizedBox.shrink();
+
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 32),
+            child: CategorySection(
+              category: category,
+              events: events,
+              onSeeAllTap: () => context.push('/events/category/${category.id}'),
+              onEventTap: (event) => context.push('/events/${event.id}'),
+            ),
+          );
+        },
+        childCount: categories.length,
+      ),
     );
   }
 
   void _showSearchSheet(BuildContext context) {
-    showModalBottomSheet(
+    // Reutilizar lógica de búsqueda existente o implementar nueva
+    // Por ahora, placeholder simple
+     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
@@ -67,17 +311,6 @@ class _EventsHomeScreenState extends ConsumerState<EventsHomeScreen> {
           ),
           child: Column(
             children: [
-              // Handle
-              Container(
-                margin: const EdgeInsets.only(top: 12),
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: AppColors.outline,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              // Header
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: TextField(
@@ -86,205 +319,23 @@ class _EventsHomeScreenState extends ConsumerState<EventsHomeScreen> {
                     hintText: 'Buscar eventos...',
                     prefixIcon: Icon(PhosphorIcons.magnifyingGlass()),
                     suffixIcon: IconButton(
-                      icon: Icon(PhosphorIcons.x()),
-                      onPressed: () => Navigator.pop(context),
+                       icon: Icon(PhosphorIcons.x()),
+                       onPressed: () => Navigator.pop(context),
+                     ),
+                    filled: true,
+                    fillColor: AppColors.surfaceVariant,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
                     ),
                   ),
-                  onChanged: (value) {
-                    // TODO: Implementar búsqueda
-                  },
                 ),
               ),
-              // Placeholder
-              Expanded(
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        PhosphorIcons.magnifyingGlass(PhosphorIconsStyle.duotone),
-                        size: 64,
-                        color: AppColors.onSurfaceVariant.withAlpha(128),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Busca eventos por nombre',
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                              color: AppColors.onSurfaceVariant,
-                            ),
-                      ),
-                    ],
-                  ),
-                ),
+              const Expanded(
+                child: Center(child: Text('Los resultados aparecerán aquí')),
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBody(EventsState eventsState) {
-    switch (eventsState.status) {
-      case EventsStatus.initial:
-      case EventsStatus.loading:
-        return const Center(
-          child: CircularProgressIndicator(),
-        );
-
-      case EventsStatus.error:
-      case EventsStatus.createError:
-        return _buildError(eventsState.errorMessage);
-
-      case EventsStatus.loaded:
-      case EventsStatus.creating:
-      case EventsStatus.created:
-        return _buildEventsList(eventsState);
-    }
-  }
-
-  Widget _buildError(String? errorMessage) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              PhosphorIcons.warning(PhosphorIconsStyle.duotone),
-              size: 64,
-              color: AppColors.error,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              errorMessage ?? 'Error al cargar los eventos',
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyLarge,
-            ),
-            const SizedBox(height: 24),
-            FilledButton.icon(
-              onPressed: () {
-                ref
-                    .read(eventsNotifierProvider.notifier)
-                    .loadEventsGroupedByCategory();
-              },
-              icon: Icon(PhosphorIcons.arrowClockwise()),
-              label: const Text('Reintentar'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildEventsList(EventsState eventsState) {
-    final categories = eventsState.sortedCategories;
-
-    if (categories.isEmpty) {
-      return _buildEmptyState();
-    }
-
-    return RefreshIndicator(
-      onRefresh: () async {
-        await ref.read(eventsNotifierProvider.notifier).refresh();
-      },
-      child: ListView.builder(
-        physics: const AlwaysScrollableScrollPhysics(
-          parent: BouncingScrollPhysics(
-            decelerationRate: ScrollDecelerationRate.fast,
-          ),
-        ),
-        cacheExtent: 500, // Pre-renderiza contenido extra
-        itemCount: categories.length + 1, // +1 para el header
-        itemBuilder: (context, index) {
-          // Header (índice 0)
-          if (index == 0) {
-            return Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Explora tu ciudad',
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Descubre eventos cerca de ti',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppColors.onSurfaceVariant,
-                        ),
-                  ),
-                ],
-              ),
-            );
-          }
-
-          // Categorías (índice 1 en adelante)
-          final categoryIndex = index - 1;
-          final category = categories[categoryIndex];
-          final events = eventsState.eventsByCategory[category] ?? [];
-
-          return RepaintBoundary(
-            child: Padding(
-              padding: const EdgeInsets.only(bottom: 24),
-              child: CategorySection(
-                category: category,
-                events: events,
-                onSeeAllTap: () {
-                  context.push('/events/category/${category.id}');
-                },
-                onEventTap: (event) {
-                  context.push('/events/${event.id}');
-                },
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildEmptyState() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              PhosphorIcons.calendarX(PhosphorIconsStyle.duotone),
-              size: 80,
-              color: AppColors.onSurfaceVariant.withAlpha(128),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'No hay eventos disponibles',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: AppColors.onSurfaceVariant,
-                  ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Vuelve más tarde para descubrir nuevos eventos',
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColors.onSurfaceVariant,
-                  ),
-            ),
-            const SizedBox(height: 24),
-            OutlinedButton.icon(
-              onPressed: () {
-                ref
-                    .read(eventsNotifierProvider.notifier)
-                    .loadEventsGroupedByCategory();
-              },
-              icon: Icon(PhosphorIcons.arrowClockwise()),
-              label: const Text('Actualizar'),
-            ),
-          ],
         ),
       ),
     );

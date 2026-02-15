@@ -6,10 +6,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/utils/date_formatter.dart';
-import '../../domain/entities/event.dart';
-import '../providers/events_provider.dart';
+import '../../../../../core/theme/app_colors.dart';
+import '../../../../../core/utils/date_formatter.dart';
+import '../../../domain/entities/event.dart';
+import '../../providers/events_provider.dart';
 
 /// Tarjeta de evento para el listado horizontal.
 ///

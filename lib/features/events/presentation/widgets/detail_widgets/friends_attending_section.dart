@@ -6,9 +6,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/utils/string_utils.dart';
-import '../providers/events_provider.dart';
+import '../../../../../core/theme/app_colors.dart';
+import '../../../../../core/utils/string_utils.dart';
+import '../../providers/events_provider.dart';
 
 /// Sección que muestra los amigos (usuarios seguidos) que van a un evento.
 class FriendsAttendingSection extends ConsumerWidget {

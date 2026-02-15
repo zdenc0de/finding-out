@@ -15,7 +15,7 @@ import '../../../location_search/presentation/screens/map_location_picker_screen
 import '../../../location_search/presentation/widgets/address_autocomplete_field.dart';
 import '../../domain/entities/category.dart';
 import '../providers/events_provider.dart';
-import '../widgets/image_picker_field.dart';
+import '../widgets/create_widgets/image_picker_field.dart';
 
 /// Pantalla para crear un nuevo evento.
 class CreateEventScreen extends ConsumerStatefulWidget {

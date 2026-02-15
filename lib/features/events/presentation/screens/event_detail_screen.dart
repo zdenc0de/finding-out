@@ -15,10 +15,10 @@ import '../../../../core/utils/string_utils.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../../../core/widgets/main_shell.dart';
 import '../providers/events_provider.dart';
-import '../widgets/attendance_buttons.dart';
-import '../widgets/attendee_stats_section.dart';
-import '../widgets/category_badge.dart';
-import '../widgets/friends_attending_section.dart';
+import '../widgets/detail_widgets/attendance_buttons.dart';
+import '../widgets/detail_widgets/attendee_stats_section.dart';
+import '../widgets/shared/category_badge.dart';
+import '../widgets/detail_widgets/friends_attending_section.dart';
 
 /// Pantalla de detalle de un evento.
 class EventDetailScreen extends ConsumerWidget {

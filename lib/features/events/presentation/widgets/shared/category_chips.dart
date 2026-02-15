@@ -4,9 +4,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/theme/app_colors.dart';
-import '../providers/events_provider.dart';
-import '../providers/featured_events_provider.dart';
+import '../../../../../core/theme/app_colors.dart';
+import '../../providers/events_provider.dart';
+import '../../providers/featured_events_provider.dart';
 
 /// Lista horizontal de chips para filtrar eventos por categoría.
 ///

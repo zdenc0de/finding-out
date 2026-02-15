@@ -8,10 +8,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
-import '../../../../core/errors/exceptions.dart';
-import '../../../../core/providers/storage_provider.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../../../core/errors/exceptions.dart';
+import '../../../../../core/providers/storage_provider.dart';
+import '../../../../../core/theme/app_colors.dart';
+import '../../../../auth/presentation/providers/auth_provider.dart';
 
 /// Widget para seleccionar y subir imágenes de eventos.
 ///

@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:finding_out/features/events/domain/entities/event.dart';
-import 'package:finding_out/features/events/presentation/widgets/event_card.dart';
+import 'package:finding_out/features/events/presentation/widgets/shared/event_card.dart';
 
 /// Tests unitarios para constantes y propiedades de EventCard.
 /// 

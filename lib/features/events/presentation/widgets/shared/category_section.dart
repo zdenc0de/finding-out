@@ -4,9 +4,9 @@
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
-import '../../../../core/theme/app_colors.dart';
-import '../../domain/entities/category.dart';
-import '../../domain/entities/event.dart';
+import '../../../../../core/theme/app_colors.dart';
+import '../../../domain/entities/category.dart';
+import '../../../domain/entities/event.dart';
 import 'event_card.dart';
 
 /// Sección de categoría con header y listado horizontal de eventos.

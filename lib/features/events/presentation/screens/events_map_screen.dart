@@ -17,12 +17,12 @@ import '../../domain/entities/event.dart';
 import '../../domain/entities/featured_event.dart';
 import '../providers/events_provider.dart';
 import '../providers/featured_events_provider.dart';
-import '../widgets/category_chips.dart';
-import '../widgets/event_bottom_sheet.dart';
-import '../widgets/featured_events_sheet.dart';
-import '../widgets/map_controls.dart';
-import '../widgets/map_search_bar.dart';
-import '../widgets/radius_slider.dart';
+import '../widgets/shared/category_chips.dart';
+import '../widgets/map_widgets/event_bottom_sheet.dart';
+import '../widgets/map_widgets/featured_events_sheet.dart';
+import '../widgets/map_widgets/map_controls.dart';
+import '../widgets/map_widgets/map_search_bar.dart';
+import '../widgets/map_widgets/radius_slider.dart';
 
 /// Pantalla del mapa que muestra los eventos como marcadores.
 /// Diseño estilo Google Maps con barra de búsqueda, filtros y eventos destacados.
