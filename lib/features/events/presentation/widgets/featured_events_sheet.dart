@@ -206,20 +206,18 @@ class _FeaturedEventsSheetState extends ConsumerState<FeaturedEventsSheet>
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surface,
-        border: const Border(
-          top: BorderSide(
-            color: Color(0x10000000),
-            width: 0.5,
-          ),
+        borderRadius: const BorderRadius.vertical(
+          top: Radius.circular(20),
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.shadow.withAlpha(30),
-            blurRadius: 10,
-            offset: const Offset(0, -2),
+            color: AppColors.shadow.withAlpha(40),
+            blurRadius: 16,
+            offset: const Offset(0, -4),
           ),
         ],
       ),
+      clipBehavior: Clip.antiAlias,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [

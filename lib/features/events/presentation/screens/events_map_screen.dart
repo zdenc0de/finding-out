@@ -105,7 +105,7 @@ class _EventsMapScreenState extends ConsumerState<EventsMapScreen> {
             compassEnabled: false,
             padding: EdgeInsets.only(
               top: MediaQuery.of(context).padding.top + 120,
-              bottom: 180,
+              bottom: MediaQuery.of(context).padding.bottom + 260,
             ),
             onMapCreated: (GoogleMapController controller) {
               _mapControllerCompleter.complete(controller);
@@ -183,7 +183,7 @@ class _EventsMapScreenState extends ConsumerState<EventsMapScreen> {
           // Controles del mapa (derecha)
           Positioned(
             right: 16,
-            bottom: 300,
+            bottom: MediaQuery.of(context).padding.bottom + 300,
             child: MapControls(
               mapRotation: _currentRotation,
               onZoomIn: _zoomIn,
@@ -198,7 +198,7 @@ class _EventsMapScreenState extends ConsumerState<EventsMapScreen> {
           Positioned(
             left: 0,
             right: 0,
-            bottom: 56, // Altura exacta del navbar para quedar pegado
+            bottom: MediaQuery.of(context).padding.bottom + 56, // Navbar height + safe area
             child: FeaturedEventsSheet(
               onEventTap: (FeaturedEvent featured) {
                 _animateToEvent(featured.event);
