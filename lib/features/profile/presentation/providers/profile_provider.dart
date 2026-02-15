@@ -28,8 +28,9 @@ class UserStats {
 /// Obtiene el conteo de eventos creados por el usuario actual.
 /// Se invalida automáticamente cuando cambia el estado de eventos.
 final userStatsProvider = FutureProvider<UserStats>((ref) async {
-  // Escuchar cambios en eventos para refrescar stats
+  // Escuchar cambios en eventos y asistencia para refrescar stats
   ref.watch(eventsNotifierProvider);
+  ref.watch(myUpcomingEventsProvider);
 
   final authState = ref.watch(authNotifierProvider);
   final user = authState.user;
@@ -41,12 +42,14 @@ final userStatsProvider = FutureProvider<UserStats>((ref) async {
   final repository = ref.read(eventRepositoryProvider);
 
   try {
-    final eventsCreated = await repository.getUserEventsCount(user.id);
+    final results = await Future.wait([
+      repository.getUserEventsCount(user.id),
+      repository.getUserAttendedEventsCount(user.id),
+    ]);
 
     return UserStats(
-      eventsCreated: eventsCreated,
-      // TODO: Implementar cuando existan estas funcionalidades
-      eventsAttended: 0,
+      eventsCreated: results[0],
+      eventsAttended: results[1],
       favoritePlaces: 0,
     );
   } catch (e) {
@@ -89,10 +92,14 @@ final userStatsByIdProvider =
   final eventRepository = ref.read(eventRepositoryProvider);
 
   try {
-    final eventsCreated = await eventRepository.getUserEventsCount(userId);
+    final results = await Future.wait([
+      eventRepository.getUserEventsCount(userId),
+      eventRepository.getUserAttendedEventsCount(userId),
+    ]);
+
     return UserStats(
-      eventsCreated: eventsCreated,
-      eventsAttended: 0,
+      eventsCreated: results[0],
+      eventsAttended: results[1],
       favoritePlaces: 0,
     );
   } catch (e) {

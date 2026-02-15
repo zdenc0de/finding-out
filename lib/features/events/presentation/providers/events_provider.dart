@@ -297,6 +297,8 @@ class AttendanceNotifier extends StateNotifier<AttendanceState> {
   void _invalidateRelatedProviders() {
     _ref.invalidate(friendsAttendingProvider(_eventId));
     _ref.invalidate(attendeeCountProvider(_eventId));
+    _ref.invalidate(attendeeStatsProvider(_eventId));
+    _ref.invalidate(myUpcomingEventsProvider);
   }
 
   void clearError() {

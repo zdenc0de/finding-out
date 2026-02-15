@@ -349,10 +349,30 @@ class EventRepositoryImpl implements EventRepository {
   @override
   Future<int> getUserAttendedEventsCount(String userId) async {
     try {
-      final response =
-          await _client.from('event_attendees').select().eq('user_id', userId);
+      // Solo contar eventos pasados donde el usuario marcó 'going'
+      final now = DateTime.now().toUtc().toIso8601String();
 
-      return (response as List<dynamic>).length;
+      // Obtener IDs de eventos con status 'going'
+      final attendanceResponse = await _client
+          .from('event_attendees')
+          .select('event_id')
+          .eq('user_id', userId)
+          .eq('status', 'going');
+
+      final eventIds = (attendanceResponse as List<dynamic>)
+          .map((item) => item['event_id'] as String)
+          .toList();
+
+      if (eventIds.isEmpty) return 0;
+
+      // Contar solo los eventos que ya pasaron
+      final pastEventsResponse = await _client
+          .from('events')
+          .select('id')
+          .inFilter('id', eventIds)
+          .lt('start_date', now);
+
+      return (pastEventsResponse as List<dynamic>).length;
     } catch (e) {
       return 0;
     }
@@ -377,16 +397,17 @@ class EventRepositoryImpl implements EventRepository {
 
       if (eventIds.isEmpty) return [];
 
-      // Obtener eventos futuros
-      final now = DateTime.now().toUtc().toIso8601String();
+      // Incluir eventos desde el inicio de hoy
+      final today = DateTime.now().toUtc();
+      final startOfDay = DateTime.utc(today.year, today.month, today.day);
 
       final eventsResponse = await _client
           .from('events')
           .select()
           .inFilter('id', eventIds)
-          .gte('start_date', now)
+          .gte('start_date', startOfDay.toIso8601String())
           .order('start_date', ascending: true)
-          .limit(5);
+          .limit(10);
 
       return (eventsResponse as List<dynamic>)
           .map((json) => EventModel.fromJson(json as Map<String, dynamic>))
