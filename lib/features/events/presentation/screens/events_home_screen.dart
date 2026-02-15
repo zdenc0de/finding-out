@@ -486,6 +486,7 @@ class _SearchBottomSheetState extends ConsumerState<_SearchBottomSheet> {
           return SearchEventTile(
             event: event,
             onTap: () {
+              FocusManager.instance.primaryFocus?.unfocus();
               Navigator.pop(context);
               GoRouter.of(context).push('/events/${event.id}');
             },
