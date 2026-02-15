@@ -27,27 +27,48 @@ final mapTargetLocationProvider = StateProvider<LatLng?>((ref) => null);
 /// - Índice 2: CreateEventScreen (crear nuevo evento)
 /// - Índice 3: ProfileScreen (perfil del usuario)
 /// - Índice 4: UserSearchScreen (buscar usuarios)
-class MainShell extends ConsumerWidget {
+///
+/// Usa carga lazy: cada pantalla se construye solo al visitarla
+/// por primera vez y se mantiene viva con Offstage.
+class MainShell extends ConsumerStatefulWidget {
   const MainShell({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MainShell> createState() => _MainShellState();
+}
+
+class _MainShellState extends ConsumerState<MainShell> {
+  /// Tracks which pages have been visited at least once.
+  final Set<int> _initializedPages = {0}; // Home is always initialized
+
+  static const List<Widget> _pages = [
+    EventsHomeScreen(),
+    EventsMapScreen(),
+    CreateEventScreen(),
+    ProfileScreen(),
+    UserSearchScreen(),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
     final currentIndex = ref.watch(currentTabIndexProvider);
+
+    // Mark the current page as initialized on first visit
+    if (!_initializedPages.contains(currentIndex)) {
+      _initializedPages.add(currentIndex);
+    }
 
     return Scaffold(
       body: Stack(
         children: [
-          // Contenido de la pantalla actual
-          IndexedStack(
-            index: currentIndex,
-            children: const [
-              EventsHomeScreen(),
-              EventsMapScreen(),
-              CreateEventScreen(),
-              ProfileScreen(),
-              UserSearchScreen(),
-            ],
-          ),
+          // Lazy-loaded pages: only build when first visited,
+          // then keep alive with Offstage
+          for (int i = 0; i < _pages.length; i++)
+            if (_initializedPages.contains(i))
+              Offstage(
+                offstage: currentIndex != i,
+                child: _pages[i],
+              ),
 
           // Navbar flotante
           FloatingNavbar(

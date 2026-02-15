@@ -95,7 +95,7 @@ void main() {
       test('el usuario no debe ser igual a otro tipo de objeto', () {
         final user = createUser();
 
-        expect(user == 'not a user', isFalse);
+        expect(user, isNot(equals('not a user')));
       });
     });
 

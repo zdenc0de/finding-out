@@ -1,6 +1,7 @@
 // lib/features/events/presentation/widgets/featured_events_sheet.dart
 // Panel inferior con eventos destacados y botón Top 10
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -371,10 +372,10 @@ class _FeaturedEventCard extends StatelessWidget {
                         width: double.infinity,
                         child:
                             event.imageUrl != null && event.imageUrl!.isNotEmpty
-                                ? Image.network(
-                                    event.imageUrl!,
+                                ? CachedNetworkImage(
+                                    imageUrl: event.imageUrl!,
                                     fit: BoxFit.cover,
-                                    errorBuilder: (_, __, ___) =>
+                                    errorWidget: (_, __, ___) =>
                                         _buildImagePlaceholder(),
                                   )
                                 : _buildImagePlaceholder(),

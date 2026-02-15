@@ -1,6 +1,7 @@
 // lib/features/events/presentation/widgets/event_bottom_sheet.dart
 // Bottom sheet para mostrar información de un evento desde el mapa
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -67,13 +68,15 @@ class EventBottomSheet extends StatelessWidget {
                       child: SizedBox(
                         width: 80,
                         height: 80,
-                        child: event.imageUrl != null && event.imageUrl!.isNotEmpty
-                            ? Image.network(
-                                event.imageUrl!,
-                                fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => _buildImagePlaceholder(),
-                              )
-                            : _buildImagePlaceholder(),
+                        child:
+                            event.imageUrl != null && event.imageUrl!.isNotEmpty
+                                ? CachedNetworkImage(
+                                    imageUrl: event.imageUrl!,
+                                    fit: BoxFit.cover,
+                                    errorWidget: (_, __, ___) =>
+                                        _buildImagePlaceholder(),
+                                  )
+                                : _buildImagePlaceholder(),
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -121,7 +124,10 @@ class EventBottomSheet extends StatelessWidget {
                           // Título
                           Text(
                             event.title,
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(
                                   fontWeight: FontWeight.bold,
                                 ),
                             maxLines: 2,
@@ -136,7 +142,8 @@ class EventBottomSheet extends StatelessWidget {
                 const SizedBox(height: 16),
 
                 // Descripción (si existe)
-                if (event.description != null && event.description!.isNotEmpty) ...[
+                if (event.description != null &&
+                    event.description!.isNotEmpty) ...[
                   Text(
                     event.description!,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(

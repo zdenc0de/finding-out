@@ -3,6 +3,7 @@
 
 import 'dart:io';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
@@ -256,14 +257,12 @@ class _ImagePickerFieldState extends ConsumerState<ImagePickerField> {
                     _selectedFile!,
                     fit: BoxFit.cover,
                   )
-                : Image.network(
-                    _uploadedUrl!,
+                : CachedNetworkImage(
+                    imageUrl: _uploadedUrl!,
                     fit: BoxFit.cover,
-                    loadingBuilder: (context, child, loadingProgress) {
-                      if (loadingProgress == null) return child;
-                      return const Center(child: CircularProgressIndicator());
-                    },
-                    errorBuilder: (context, error, stackTrace) {
+                    placeholder: (context, url) =>
+                        const Center(child: CircularProgressIndicator()),
+                    errorWidget: (context, url, error) {
                       return Center(
                         child: Icon(
                           PhosphorIcons.imageSquare(),

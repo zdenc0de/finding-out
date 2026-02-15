@@ -47,7 +47,7 @@ void main() {
       test('la categoría no debe ser igual a otro tipo de objeto', () {
         final category = createCategory();
 
-        expect(category == 'not a category', isFalse);
+        expect(category, isNot(equals('not a category')));
       });
     });
 

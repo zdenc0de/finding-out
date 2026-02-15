@@ -76,7 +76,7 @@ void main() {
       test('el evento no debe ser igual a otro tipo de objeto', () {
         final event = createEvent();
 
-        expect(event == 'not an event', isFalse);
+        expect(event, isNot(equals('not an event')));
       });
     });
 

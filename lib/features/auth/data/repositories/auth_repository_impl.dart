@@ -128,7 +128,7 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       final currentUser = _client.auth.currentUser;
       if (currentUser == null) {
-        throw const AuthException('No hay usuario autenticado');
+        throw const ProfileUpdateException('No hay usuario autenticado');
       }
 
       // Construir el mapa de datos a actualizar
@@ -239,7 +239,8 @@ class AuthRepositoryImpl implements AuthRepository {
     if (lowerMessage.contains('session expired') ||
         lowerMessage.contains('refresh token') ||
         lowerMessage.contains('jwt expired')) {
-      return const AuthException('Tu sesión ha expirado. Inicia sesión nuevamente');
+      return const AuthException(
+          'Tu sesión ha expirado. Inicia sesión nuevamente');
     }
 
     // Error genérico de autenticación

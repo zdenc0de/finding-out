@@ -1,6 +1,7 @@
 // lib/features/events/presentation/screens/event_detail_screen.dart
 // Pantalla de detalle de evento - Estilo Santorini
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -33,230 +34,236 @@ class EventDetailScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final eventAsync = ref.watch(eventByIdProvider(eventId));
 
-    // Status bar transparente para efecto inmersivo
-    SystemChrome.setSystemUIOverlayStyle(
-      const SystemUiOverlayStyle(
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
         statusBarIconBrightness: Brightness.light,
       ),
-    );
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        body: eventAsync.when(
+          loading: () => const Center(
+            child: CircularProgressIndicator(),
+          ),
+          error: (error, stackTrace) => _buildErrorState(context),
+          data: (event) {
+            if (event == null) {
+              return _buildNotFoundState(context);
+            }
 
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: eventAsync.when(
-        loading: () => const Center(
-          child: CircularProgressIndicator(),
-        ),
-        error: (error, stackTrace) => _buildErrorState(context),
-        data: (event) {
-          if (event == null) {
-            return _buildNotFoundState(context);
-          }
-
-          return CustomScrollView(
-            slivers: [
-              // Hero Image con AppBar transparente
-              SliverAppBar(
-                expandedHeight: 280,
-                pinned: true,
-                stretch: true,
-                backgroundColor: AppColors.primary,
-                leading: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: CircleAvatar(
-                    backgroundColor: Colors.black.withAlpha(80),
-                    child: IconButton(
-                      icon: const Icon(
-                        Icons.arrow_back,
-                        color: Colors.white,
-                      ),
-                      onPressed: () => Navigator.of(context).pop(),
-                    ),
-                  ),
-                ),
-                actions: [
-                  Padding(
-                    padding: const EdgeInsets.only(right: 8.0),
+            return CustomScrollView(
+              slivers: [
+                // Hero Image con AppBar transparente
+                SliverAppBar(
+                  expandedHeight: 280,
+                  pinned: true,
+                  stretch: true,
+                  backgroundColor: AppColors.primary,
+                  leading: Padding(
+                    padding: const EdgeInsets.all(8.0),
                     child: CircleAvatar(
                       backgroundColor: Colors.black.withAlpha(80),
                       child: IconButton(
-                        icon: Icon(
-                          PhosphorIcons.shareFat(PhosphorIconsStyle.fill),
+                        icon: const Icon(
+                          Icons.arrow_back,
                           color: Colors.white,
                         ),
-                        onPressed: () => _shareEvent(
-                          context,
-                          title: event.title,
-                          description: event.description,
-                          date: event.startDate,
-                          address: event.address,
-                        ),
+                        onPressed: () => Navigator.of(context).pop(),
                       ),
                     ),
                   ),
-                ],
-                flexibleSpace: FlexibleSpaceBar(
-                  stretchModes: const [StretchMode.zoomBackground],
-                  background: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      // Imagen
-                      if (event.imageUrl != null && event.imageUrl!.isNotEmpty)
-                        Image.network(
-                          event.imageUrl!,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) =>
-                              _buildImagePlaceholder(),
-                        )
-                      else
-                        _buildImagePlaceholder(),
-
-                      // Gradient overlay
-                      Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              Colors.transparent,
-                              Colors.black.withAlpha(150),
-                            ],
+                  actions: [
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8.0),
+                      child: CircleAvatar(
+                        backgroundColor: Colors.black.withAlpha(80),
+                        child: IconButton(
+                          icon: Icon(
+                            PhosphorIcons.shareFat(PhosphorIconsStyle.fill),
+                            color: Colors.white,
+                          ),
+                          onPressed: () => _shareEvent(
+                            context,
+                            title: event.title,
+                            description: event.description,
+                            date: event.startDate,
+                            address: event.address,
                           ),
                         ),
                       ),
-                    ],
-                  ),
-                ),
-              ),
+                    ),
+                  ],
+                  flexibleSpace: FlexibleSpaceBar(
+                    stretchModes: const [StretchMode.zoomBackground],
+                    background: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        // Imagen
+                        if (event.imageUrl != null &&
+                            event.imageUrl!.isNotEmpty)
+                          CachedNetworkImage(
+                            imageUrl: event.imageUrl!,
+                            fit: BoxFit.cover,
+                            errorWidget: (context, url, error) =>
+                                _buildImagePlaceholder(),
+                          )
+                        else
+                          _buildImagePlaceholder(),
 
-              // Contenido
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Título
-                      Text(
-                        event.title,
-                        style: Theme.of(context)
-                            .textTheme
-                            .headlineMedium
-                            ?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.onSurface,
-                              height: 1.2,
+                        // Gradient overlay
+                        Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                Colors.transparent,
+                                Colors.black.withAlpha(150),
+                              ],
                             ),
-                      ),
-                      const SizedBox(height: 12),
-
-                      // Badge de categoría
-                      CategoryBadge(categoryId: event.categoryId),
-                      const SizedBox(height: 20),
-
-                      // Estadísticas de asistentes
-                      AttendeeStatsSection(eventId: eventId),
-                      const SizedBox(height: 20),
-
-                      // Info cards
-                      _buildInfoCard(
-                        context,
-                        icon: PhosphorIcons.calendar(PhosphorIconsStyle.fill),
-                        title: 'Fecha',
-                        value: DateFormatter.formatLongDate(event.startDate),
-                      ),
-                      const SizedBox(height: 12),
-
-                      _buildInfoCard(
-                        context,
-                        icon: PhosphorIcons.clock(PhosphorIconsStyle.fill),
-                        title: 'Hora',
-                        value: DateFormatter.formatTime(event.startDate),
-                      ),
-
-                      if (event.address != null &&
-                          event.locationLat != null &&
-                          event.locationLng != null) ...[
-                        const SizedBox(height: 12),
-                        _buildInfoCard(
-                          context,
-                          icon: PhosphorIcons.mapPin(PhosphorIconsStyle.fill),
-                          title: 'Ubicación',
-                          value: event.address!,
-                          onTap: () {
-                            // Setear las coordenadas destino
-                            ref.read(mapTargetLocationProvider.notifier).state =
-                                LatLng(event.locationLat!, event.locationLng!);
-                            // Navegar al mapa
-                            ref.read(currentTabIndexProvider.notifier).state =
-                                1;
-                            context.go('/home');
-                          },
-                        ),
-                      ] else if (event.address != null) ...[
-                        const SizedBox(height: 12),
-                        _buildInfoCard(
-                          context,
-                          icon: PhosphorIcons.mapPin(PhosphorIconsStyle.fill),
-                          title: 'Ubicación',
-                          value: event.address!,
+                          ),
                         ),
                       ],
-
-                      // Botones de asistencia
-                      const SizedBox(height: 24),
-                      AttendanceButtons(eventId: eventId),
-
-                      // Descripción
-                      if (event.description != null &&
-                          event.description!.isNotEmpty) ...[
-                        const SizedBox(height: 32),
-                        Text(
-                          'Acerca del evento',
-                          style:
-                              Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.onSurface,
-                                  ),
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          event.description!,
-                          style:
-                              Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                    color: AppColors.onSurfaceVariant,
-                                    height: 1.6,
-                                  ),
-                        ),
-                      ],
-
-                      // Amigos que van
-                      FriendsAttendingSection(eventId: eventId),
-
-                      // Organizador
-                      if (event.createdBy != null) ...[
-                        const SizedBox(height: 32),
-                        Text(
-                          'Organizador',
-                          style:
-                              Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.onSurface,
-                                  ),
-                        ),
-                        const SizedBox(height: 12),
-                        _CreatorCard(creatorId: event.createdBy!),
-                      ],
-
-                      // Espacio para el navbar
-                      const SizedBox(height: 100),
-                    ],
+                    ),
                   ),
                 ),
-              ),
-            ],
-          );
-        },
+
+                // Contenido
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Título
+                        Text(
+                          event.title,
+                          style: Theme.of(context)
+                              .textTheme
+                              .headlineMedium
+                              ?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.onSurface,
+                                height: 1.2,
+                              ),
+                        ),
+                        const SizedBox(height: 12),
+
+                        // Badge de categoría
+                        CategoryBadge(categoryId: event.categoryId),
+                        const SizedBox(height: 20),
+
+                        // Estadísticas de asistentes
+                        AttendeeStatsSection(eventId: eventId),
+                        const SizedBox(height: 20),
+
+                        // Info cards
+                        _buildInfoCard(
+                          context,
+                          icon: PhosphorIcons.calendar(PhosphorIconsStyle.fill),
+                          title: 'Fecha',
+                          value: DateFormatter.formatLongDate(event.startDate),
+                        ),
+                        const SizedBox(height: 12),
+
+                        _buildInfoCard(
+                          context,
+                          icon: PhosphorIcons.clock(PhosphorIconsStyle.fill),
+                          title: 'Hora',
+                          value: DateFormatter.formatTime(event.startDate),
+                        ),
+
+                        if (event.address != null &&
+                            event.locationLat != null &&
+                            event.locationLng != null) ...[
+                          const SizedBox(height: 12),
+                          _buildInfoCard(
+                            context,
+                            icon: PhosphorIcons.mapPin(PhosphorIconsStyle.fill),
+                            title: 'Ubicación',
+                            value: event.address!,
+                            onTap: () {
+                              // Setear las coordenadas destino
+                              ref
+                                      .read(mapTargetLocationProvider.notifier)
+                                      .state =
+                                  LatLng(
+                                      event.locationLat!, event.locationLng!);
+                              // Navegar al mapa
+                              ref.read(currentTabIndexProvider.notifier).state =
+                                  1;
+                              context.go('/home');
+                            },
+                          ),
+                        ] else if (event.address != null) ...[
+                          const SizedBox(height: 12),
+                          _buildInfoCard(
+                            context,
+                            icon: PhosphorIcons.mapPin(PhosphorIconsStyle.fill),
+                            title: 'Ubicación',
+                            value: event.address!,
+                          ),
+                        ],
+
+                        // Botones de asistencia
+                        const SizedBox(height: 24),
+                        AttendanceButtons(eventId: eventId),
+
+                        // Descripción
+                        if (event.description != null &&
+                            event.description!.isNotEmpty) ...[
+                          const SizedBox(height: 32),
+                          Text(
+                            'Acerca del evento',
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.onSurface,
+                                ),
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            event.description!,
+                            style:
+                                Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                      color: AppColors.onSurfaceVariant,
+                                      height: 1.6,
+                                    ),
+                          ),
+                        ],
+
+                        // Amigos que van
+                        FriendsAttendingSection(eventId: eventId),
+
+                        // Organizador
+                        if (event.createdBy != null) ...[
+                          const SizedBox(height: 32),
+                          Text(
+                            'Organizador',
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.onSurface,
+                                ),
+                          ),
+                          const SizedBox(height: 12),
+                          _CreatorCard(creatorId: event.createdBy!),
+                        ],
+
+                        // Espacio para el navbar
+                        const SizedBox(height: 100),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
       ),
     );
   }

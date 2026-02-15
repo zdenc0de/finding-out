@@ -1,6 +1,7 @@
 // lib/features/events/presentation/screens/top10_events_screen.dart
 // Pantalla modal con los 10 eventos más destacados
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -206,10 +207,10 @@ class _Top10EventCard extends StatelessWidget {
                   width: 60,
                   height: 60,
                   child: event.imageUrl != null && event.imageUrl!.isNotEmpty
-                      ? Image.network(
-                          event.imageUrl!,
+                      ? CachedNetworkImage(
+                          imageUrl: event.imageUrl!,
                           fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => _buildPlaceholder(),
+                          errorWidget: (_, __, ___) => _buildPlaceholder(),
                         )
                       : _buildPlaceholder(),
                 ),
