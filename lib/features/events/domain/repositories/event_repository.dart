@@ -77,4 +77,7 @@ abstract class EventRepository {
 
   /// Obtiene los eventos creados por un usuario.
   Future<List<Event>> getEventsByCreator(String userId);
+
+  /// Busca eventos por texto en título, descripción o dirección.
+  Future<List<Event>> searchEvents(String query);
 }

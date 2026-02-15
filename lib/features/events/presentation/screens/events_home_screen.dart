@@ -10,8 +10,10 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../domain/entities/event.dart';
+import '../providers/event_search_provider.dart';
 import '../providers/events_provider.dart';
 import '../widgets/shared/category_section.dart';
+import '../widgets/shared/search_event_tile.dart';
 import '../widgets/home_widgets/friends_activity_section.dart';
 import '../widgets/home_widgets/hero_event_banner.dart';
 import '../widgets/home_widgets/quick_filter_bar.dart';
@@ -294,50 +296,228 @@ class _EventsHomeScreenState extends ConsumerState<EventsHomeScreen> {
   }
 
   void _showSearchSheet(BuildContext context) {
-    // Reutilizar lógica de búsqueda existente o implementar nueva
-    // Por ahora, placeholder simple
-     showModalBottomSheet(
+    showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.9,
-        minChildSize: 0.5,
-        maxChildSize: 0.95,
-        builder: (context, scrollController) => Container(
-          decoration: const BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-          ),
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: TextField(
-                  autofocus: true,
-                  decoration: InputDecoration(
-                    hintText: 'Buscar eventos...',
-                    prefixIcon: Icon(PhosphorIcons.magnifyingGlass()),
-                    suffixIcon: IconButton(
-                       icon: Icon(PhosphorIcons.x()),
-                       onPressed: () => Navigator.pop(context),
-                     ),
-                    filled: true,
-                    fillColor: AppColors.surfaceVariant,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
+      builder: (context) => const _SearchBottomSheet(),
+    );
+  }
+}
+
+/// Bottom sheet con búsqueda de eventos en tiempo real.
+class _SearchBottomSheet extends ConsumerStatefulWidget {
+  const _SearchBottomSheet();
+
+  @override
+  ConsumerState<_SearchBottomSheet> createState() => _SearchBottomSheetState();
+}
+
+class _SearchBottomSheetState extends ConsumerState<_SearchBottomSheet> {
+  final _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final searchState = ref.watch(eventSearchProvider);
+
+    return DraggableScrollableSheet(
+      initialChildSize: 0.9,
+      minChildSize: 0.5,
+      maxChildSize: 0.95,
+      builder: (context, scrollController) => Container(
+        decoration: const BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: Column(
+          children: [
+            // Handle visual
+            Padding(
+              padding: const EdgeInsets.only(top: 12, bottom: 4),
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.outlineVariant,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+
+            // Campo de búsqueda
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+              child: TextField(
+                controller: _controller,
+                autofocus: true,
+                onChanged: (value) {
+                  ref.read(eventSearchProvider.notifier).search(value);
+                },
+                decoration: InputDecoration(
+                  hintText: 'Buscar eventos, lugares...',
+                  prefixIcon: Icon(PhosphorIcons.magnifyingGlass()),
+                  suffixIcon: _controller.text.isNotEmpty
+                      ? IconButton(
+                          icon: Icon(PhosphorIcons.x()),
+                          onPressed: () {
+                            _controller.clear();
+                            ref.read(eventSearchProvider.notifier).clear();
+                          },
+                        )
+                      : IconButton(
+                          icon: Icon(PhosphorIcons.x()),
+                          onPressed: () => Navigator.pop(context),
+                        ),
+                  filled: true,
+                  fillColor: AppColors.surfaceVariant,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
                   ),
                 ),
               ),
-              const Expanded(
-                child: Center(child: Text('Los resultados aparecerán aquí')),
+            ),
+
+            // Resultados
+            Expanded(
+              child: _buildSearchContent(searchState, scrollController),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Construye el contenido según el estado de búsqueda.
+  Widget _buildSearchContent(
+    EventSearchState searchState,
+    ScrollController scrollController,
+  ) {
+    // Estado de carga
+    if (searchState.isLoading) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(32.0),
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
+      );
+    }
+
+    // Error
+    if (searchState.errorMessage != null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                PhosphorIcons.warning(PhosphorIconsStyle.duotone),
+                size: 48,
+                color: AppColors.error,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                searchState.errorMessage!,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: AppColors.onSurfaceVariant,
+                    ),
+                textAlign: TextAlign.center,
               ),
             ],
           ),
+        ),
+      );
+    }
+
+    // Sin resultados tras buscar
+    if (searchState.hasSearched && searchState.results.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                PhosphorIcons.magnifyingGlass(PhosphorIconsStyle.duotone),
+                size: 56,
+                color: AppColors.outlineVariant,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Sin resultados para "${searchState.query}"',
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      color: AppColors.onSurfaceVariant,
+                    ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Intenta con otro término de búsqueda',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: AppColors.onSurfaceVariant,
+                    ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Hay resultados
+    if (searchState.results.isNotEmpty) {
+      return ListView.separated(
+        controller: scrollController,
+        padding: const EdgeInsets.only(top: 8, bottom: 24),
+        itemCount: searchState.results.length,
+        separatorBuilder: (_, __) => Divider(
+          height: 1,
+          indent: 86,
+          color: AppColors.outlineVariant.withAlpha(80),
+        ),
+        itemBuilder: (context, index) {
+          final event = searchState.results[index];
+          return SearchEventTile(
+            event: event,
+            onTap: () {
+              Navigator.pop(context);
+              GoRouter.of(context).push('/events/${event.id}');
+            },
+          );
+        },
+      );
+    }
+
+    // Estado inicial (sin búsqueda)
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              PhosphorIcons.magnifyingGlass(PhosphorIconsStyle.duotone),
+              size: 56,
+              color: AppColors.outlineVariant,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Busca por nombre, descripción o ubicación',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: AppColors.onSurfaceVariant,
+                  ),
+              textAlign: TextAlign.center,
+            ),
+          ],
         ),
       ),
     );
   }
 }
+

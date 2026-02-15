@@ -415,4 +415,28 @@ class EventRepositoryImpl implements EventRepository {
       return [];
     }
   }
+
+  @override
+  Future<List<Event>> searchEvents(String query) async {
+    if (query.trim().isEmpty) return [];
+
+    try {
+      final sanitized = query.trim();
+      final response = await _client
+          .from('events')
+          .select()
+          .or('title.ilike.%$sanitized%,description.ilike.%$sanitized%,address.ilike.%$sanitized%')
+          .order('start_date', ascending: true)
+          .limit(20);
+
+      return (response as List<dynamic>)
+          .map((json) => EventModel.fromJson(json as Map<String, dynamic>))
+          .map((model) => model.toEntity())
+          .toList();
+    } on PostgrestException catch (e) {
+      throw EventsLoadException(e.message);
+    } catch (e) {
+      throw EventsLoadException(e.toString());
+    }
+  }
 }
