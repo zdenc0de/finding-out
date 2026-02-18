@@ -254,8 +254,8 @@ class EventDetailScreen extends ConsumerWidget {
                           _CreatorCard(creatorId: event.createdBy!),
                         ],
 
-                        // Espacio para el navbar
-                        const SizedBox(height: 100),
+                        // Espacio al final
+                        const SizedBox(height: 40),
                       ],
                     ),
                   ),

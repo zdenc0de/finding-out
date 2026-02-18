@@ -108,7 +108,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
       body: Form(
         key: _formKey,
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
           children: [
             // Título
             TextFormField(

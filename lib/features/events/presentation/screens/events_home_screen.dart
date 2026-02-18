@@ -10,6 +10,8 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../domain/entities/event.dart';
+import '../../domain/entities/category.dart';
+import '../providers/event_filters_provider.dart';
 import '../providers/event_search_provider.dart';
 import '../providers/events_provider.dart';
 import '../widgets/shared/category_section.dart';
@@ -41,6 +43,7 @@ class _EventsHomeScreenState extends ConsumerState<EventsHomeScreen> {
   @override
   Widget build(BuildContext context) {
     final eventsState = ref.watch(eventsNotifierProvider);
+    final filteredEvents = ref.watch(filteredEventsByCategoryProvider);
     final authState = ref.watch(authNotifierProvider);
     final user = authState.user;
 
@@ -181,7 +184,7 @@ class _EventsHomeScreenState extends ConsumerState<EventsHomeScreen> {
 
             // 3. Banner hero de evento destacado
             SliverToBoxAdapter(
-              child: _buildHeroSection(eventsState),
+              child: _buildHeroSection(eventsState, filteredEvents),
             ),
 
             // 4. Filtros rápidos
@@ -194,7 +197,7 @@ class _EventsHomeScreenState extends ConsumerState<EventsHomeScreen> {
 
             // 5. Trending cerca de ti
             SliverToBoxAdapter(
-              child: _buildTrendingSection(eventsState),
+              child: _buildTrendingSection(eventsState, filteredEvents),
             ),
 
             // 6. Actividad de amigos
@@ -206,10 +209,12 @@ class _EventsHomeScreenState extends ConsumerState<EventsHomeScreen> {
             ),
             
             // 7. Categorías
-            _buildCategoryLists(eventsState),
+            _buildCategoryLists(eventsState, filteredEvents),
 
-            // Espacio inferior para FAB/Navbar
-            const SliverPadding(padding: EdgeInsets.only(bottom: 100)),
+            // Pequeño espacio al final para el scroll
+            const SliverToBoxAdapter(
+              child: SizedBox(height: 24),
+            ),
           ],
         ),
       ),
@@ -217,11 +222,11 @@ class _EventsHomeScreenState extends ConsumerState<EventsHomeScreen> {
   }
 
   /// Aplana todos los eventos de todas las categorías en una sola lista.
-  List<Event> _getAllEvents(EventsState state) {
-    return state.eventsByCategory.values.expand((e) => e).toList();
+  List<Event> _getAllEvents(Map<Category, List<Event>> eventsByCategory) {
+    return eventsByCategory.values.expand((e) => e).toList();
   }
 
-  Widget _buildHeroSection(EventsState state) {
+  Widget _buildHeroSection(EventsState state, Map<Category, List<Event>> filteredEvents) {
     if (state.status == EventsStatus.loading) {
       return const SizedBox(
         height: 380,
@@ -229,7 +234,7 @@ class _EventsHomeScreenState extends ConsumerState<EventsHomeScreen> {
       );
     }
 
-    final allEvents = _getAllEvents(state);
+    final allEvents = _getAllEvents(filteredEvents);
     if (allEvents.isEmpty) return const SizedBox.shrink();
 
     final featuredEvent = allEvents.first;
@@ -240,8 +245,8 @@ class _EventsHomeScreenState extends ConsumerState<EventsHomeScreen> {
     );
   }
 
-  Widget _buildTrendingSection(EventsState state) {
-    final allEvents = _getAllEvents(state);
+  Widget _buildTrendingSection(EventsState state, Map<Category, List<Event>> filteredEvents) {
+    final allEvents = _getAllEvents(filteredEvents);
     if (allEvents.length <= 1) return const SizedBox.shrink();
 
     // Skip the first event (already shown in hero) and take next 5
@@ -253,8 +258,9 @@ class _EventsHomeScreenState extends ConsumerState<EventsHomeScreen> {
     );
   }
 
-  Widget _buildCategoryLists(EventsState state) {
-     final categories = state.sortedCategories;
+  Widget _buildCategoryLists(EventsState state, Map<Category, List<Event>> filteredEvents) {
+     final categories = filteredEvents.keys.toList();
+     categories.sort((a, b) => a.displayOrder.compareTo(b.displayOrder));
      
      if (categories.isEmpty && state.status != EventsStatus.loading) {
        return SliverToBoxAdapter(
@@ -262,7 +268,7 @@ class _EventsHomeScreenState extends ConsumerState<EventsHomeScreen> {
            child: Padding(
              padding: const EdgeInsets.all(32.0),
              child: Text(
-               'No se encontraron eventos',
+               'No se encontraron eventos con este filtro',
                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                  color: AppColors.onSurfaceVariant,
                ),
@@ -276,7 +282,7 @@ class _EventsHomeScreenState extends ConsumerState<EventsHomeScreen> {
       delegate: SliverChildBuilderDelegate(
         (context, index) {
           final category = categories[index];
-          final events = state.eventsByCategory[category] ?? [];
+          final events = filteredEvents[category] ?? [];
           
           if (events.isEmpty) return const SizedBox.shrink();
 
