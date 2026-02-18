@@ -69,15 +69,14 @@ class _MainShellState extends ConsumerState<MainShell> {
                 offstage: currentIndex != i,
                 child: _pages[i],
               ),
-
-          // Navbar flotante
-          FloatingNavbar(
-            currentIndex: currentIndex,
-            onTap: (index) {
-              ref.read(currentTabIndexProvider.notifier).state = index;
-            },
-          ),
         ],
+      ),
+      // Navbar ahora gestionado por Scaffold
+      bottomNavigationBar: FloatingNavbar(
+        currentIndex: currentIndex,
+        onTap: (index) {
+          ref.read(currentTabIndexProvider.notifier).state = index;
+        },
       ),
     );
   }

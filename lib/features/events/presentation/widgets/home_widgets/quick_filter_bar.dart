@@ -2,52 +2,39 @@
 // Barra de filtros rápidos con chips horizontales.
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../core/theme/app_colors.dart';
+import '../../providers/event_filters_provider.dart';
 
 /// Barra de filtros rápidos con chips seleccionables.
 ///
 /// Muestra opciones como "Hoy", "Este fin", "Gratis", etc.
-/// El estado de selección es local; conectar a un provider
-/// para filtrar eventos reales.
-class QuickFilterBar extends StatefulWidget {
+/// Usa [selectedEventFilterProvider] para sincronizar el filtro seleccionado.
+class QuickFilterBar extends ConsumerWidget {
   const QuickFilterBar({super.key});
 
   @override
-  State<QuickFilterBar> createState() => _QuickFilterBarState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final selectedFilter = ref.watch(selectedEventFilterProvider);
 
-class _QuickFilterBarState extends State<QuickFilterBar> {
-  int _selectedIndex = 0;
-
-  /// Lista de filtros disponibles.
-  final List<String> _filters = [
-    'Hoy',
-    'Este fin',
-    'Gratis',
-    'Cerca de mí',
-    'Amigos van',
-    'Música',
-    'Comida',
-  ];
-
-  @override
-  Widget build(BuildContext context) {
     return SizedBox(
       height: 40,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16),
-        itemCount: _filters.length,
+        itemCount: EventFilter.values.length,
         separatorBuilder: (context, index) => const SizedBox(width: 8),
         itemBuilder: (context, index) {
-          final isSelected = _selectedIndex == index;
+          final filter = EventFilter.values[index];
+          final isSelected = selectedFilter == filter;
+
           return ChoiceChip(
-            label: Text(_filters[index]),
+            label: Text(filter.label),
             selected: isSelected,
             onSelected: (selected) {
-              setState(() {
-                _selectedIndex = index;
-              });
+              if (selected) {
+                ref.read(selectedEventFilterProvider.notifier).state = filter;
+              }
             },
             selectedColor: AppColors.primary,
             backgroundColor: Colors.transparent,

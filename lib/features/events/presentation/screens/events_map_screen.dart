@@ -198,7 +198,7 @@ class _EventsMapScreenState extends ConsumerState<EventsMapScreen> {
           Positioned(
             left: 0,
             right: 0,
-            bottom: MediaQuery.of(context).padding.bottom + 56, // Navbar height + safe area
+            bottom: 16, // Navbar is handled by MainShell, 16px margin is enough
             child: FeaturedEventsSheet(
               onEventTap: (FeaturedEvent featured) {
                 _animateToEvent(featured.event);

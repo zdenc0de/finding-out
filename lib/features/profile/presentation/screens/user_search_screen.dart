@@ -174,7 +174,7 @@ class _UserSearchScreenState extends ConsumerState<UserSearchScreen> {
 
   Widget _buildResultsList(BuildContext context, List<PublicProfile> profiles) {
     return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
       itemCount: profiles.length,
       itemBuilder: (context, index) {
         final profile = profiles[index];
