@@ -10,10 +10,17 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../domain/entities/event.dart';
+import '../../domain/entities/category.dart';
 import '../providers/event_filters_provider.dart';
 import '../providers/event_search_provider.dart';
 import '../providers/events_provider.dart';
-import '../../domain/entities/category.dart';
+import '../widgets/shared/category_section.dart';
+import '../widgets/shared/search_event_tile.dart';
+import '../widgets/home_widgets/friends_activity_section.dart';
+import '../widgets/home_widgets/hero_event_banner.dart';
+import '../widgets/home_widgets/quick_filter_bar.dart';
+import '../widgets/home_widgets/stories_rail.dart';
+import '../widgets/home_widgets/trending_events_section.dart';
 
 /// Pantalla principal renovada con diseño inmersivo.
 class EventsHomeScreen extends ConsumerStatefulWidget {
