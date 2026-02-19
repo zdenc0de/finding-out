@@ -113,17 +113,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     );
   }
 
-  void _showComingSoonSnackBar(String provider) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Inicio con $provider — Próximamente'),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        duration: const Duration(seconds: 2),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authNotifierProvider);
@@ -601,7 +590,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 child: _buildSocialButton(
                   label: 'Google',
                   icon: _buildGoogleIcon(),
-                  onTap: () => _showComingSoonSnackBar('Google'),
+                  onTap: () => ref.read(authNotifierProvider.notifier).signInWithGoogle(),
                 ),
               ),
               const SizedBox(width: 14),
@@ -613,7 +602,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     size: 20,
                     color: AppColors.onSurface,
                   ),
-                  onTap: () => _showComingSoonSnackBar('Apple'),
+                  onTap: () => ref.read(authNotifierProvider.notifier).signInWithApple(),
                 ),
               ),
             ],

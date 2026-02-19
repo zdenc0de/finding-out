@@ -162,6 +162,38 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<void> signInWithGoogle() async {
+    try {
+      await _client.auth.signInWithOAuth(
+        supabase.OAuthProvider.google,
+        redirectTo: SupabaseConfig.redirectUrl,
+        queryParams: {
+          'access_type': 'offline',
+          'prompt': 'consent',
+        },
+      );
+    } on supabase.AuthException catch (e) {
+      throw _mapSupabaseAuthError(e.message);
+    } catch (e) {
+      throw UnknownException(e.toString());
+    }
+  }
+
+  @override
+  Future<void> signInWithApple() async {
+    try {
+      await _client.auth.signInWithOAuth(
+        supabase.OAuthProvider.apple,
+        redirectTo: SupabaseConfig.redirectUrl,
+      );
+    } on supabase.AuthException catch (e) {
+      throw _mapSupabaseAuthError(e.message);
+    } catch (e) {
+      throw UnknownException(e.toString());
+    }
+  }
+
+  @override
   AppUser? getCurrentUser() {
     final user = _client.auth.currentUser;
     return user != null ? _mapUser(user) : null;

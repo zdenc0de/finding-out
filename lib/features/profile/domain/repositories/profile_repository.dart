@@ -14,4 +14,10 @@ abstract class ProfileRepository {
   ///
   /// Retorna una lista vacía si no hay coincidencias.
   Future<List<PublicProfile>> searchProfiles(String query);
+
+  /// Actualiza el perfil del usuario actual.
+  Future<PublicProfile> updateProfile({
+    String? displayName,
+    String? avatarUrl,
+  });
 }
