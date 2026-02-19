@@ -237,20 +237,22 @@ class _EventsHomeScreenState extends ConsumerState<EventsHomeScreen> {
     final allEvents = _getAllEvents(filteredEvents);
     if (allEvents.isEmpty) return const SizedBox.shrink();
 
-    final featuredEvent = allEvents.first;
+    // Tomamos los primeros 3 eventos como destacados para el carrusel
+    final featuredEvents = allEvents.take(3).toList();
 
     return HeroEventBanner(
-      event: featuredEvent,
-      onTap: () => context.push('/events/${featuredEvent.id}'),
+      events: featuredEvents,
+      onEventTap: (event) => context.push('/events/${event.id}'),
     );
   }
 
   Widget _buildTrendingSection(EventsState state, Map<Category, List<Event>> filteredEvents) {
     final allEvents = _getAllEvents(filteredEvents);
-    if (allEvents.length <= 1) return const SizedBox.shrink();
+    
+    // Saltamos los que ya están en el hero (primeros 3) y tomamos los siguientes 5
+    if (allEvents.length <= 3) return const SizedBox.shrink();
 
-    // Skip the first event (already shown in hero) and take next 5
-    final trendingEvents = allEvents.skip(1).take(5).toList();
+    final trendingEvents = allEvents.skip(3).take(5).toList();
 
     return TrendingEventsSection(
       events: trendingEvents,

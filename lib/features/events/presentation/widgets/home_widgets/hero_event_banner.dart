@@ -1,5 +1,5 @@
 // lib/features/events/presentation/widgets/home_widgets/hero_event_banner.dart
-// Banner hero para evento destacado en la pantalla principal.
+// Banner hero para eventos destacados en la pantalla principal.
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -8,33 +8,105 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../domain/entities/event.dart';
 
-/// Banner inmersivo para el evento destacado.
+/// Carousel inmersivo para los eventos destacados.
 ///
-/// Muestra una imagen grande con degradado, título, fecha,
-/// ubicación y un botón de acción. Si no hay evento, no
-/// renderiza nada.
-class HeroEventBanner extends StatelessWidget {
-  final Event? event;
-  final VoidCallback? onTap;
+/// Muestra una lista de eventos destacadas que se pueden deslizar lateralmente.
+/// Incluye indicadores (puntos) para mostrar la posición actual.
+class HeroEventBanner extends StatefulWidget {
+  final List<Event> events;
+  final Function(Event)? onEventTap;
 
   const HeroEventBanner({
     super.key,
-    this.event,
-    this.onTap,
+    required this.events,
+    this.onEventTap,
+  });
+
+  @override
+  State<HeroEventBanner> createState() => _HeroEventBannerState();
+}
+
+class _HeroEventBannerState extends State<HeroEventBanner> {
+  final PageController _pageController = PageController();
+  int _currentPage = 0;
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.events.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Column(
+      children: [
+        SizedBox(
+          height: 380,
+          child: PageView.builder(
+            controller: _pageController,
+            onPageChanged: (index) {
+              setState(() {
+                _currentPage = index;
+              });
+            },
+            itemCount: widget.events.length,
+            itemBuilder: (context, index) {
+              final event = widget.events[index];
+              return _HeroEventItem(
+                event: event,
+                onTap: () => widget.onEventTap?.call(event),
+              );
+            },
+          ),
+        ),
+        
+        // Indicadores (puntos)
+        if (widget.events.length > 1)
+          Padding(
+            padding: const EdgeInsets.only(top: 12),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(
+                widget.events.length,
+                (index) => AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  height: 8,
+                  width: _currentPage == index ? 24 : 8,
+                  decoration: BoxDecoration(
+                    color: _currentPage == index 
+                        ? AppColors.primary 
+                        : AppColors.outlineVariant,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _HeroEventItem extends StatelessWidget {
+  final Event event;
+  final VoidCallback onTap;
+
+  const _HeroEventItem({
+    required this.event,
+    required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    final currentEvent = event;
-    if (currentEvent == null) {
-      return const SizedBox.shrink();
-    }
-
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        height: 380,
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
@@ -50,9 +122,9 @@ class HeroEventBanner extends StatelessWidget {
           fit: StackFit.expand,
           children: [
             // Imagen de fondo
-            if (currentEvent.imageUrl != null)
+            if (event.imageUrl != null)
               CachedNetworkImage(
-                imageUrl: currentEvent.imageUrl!,
+                imageUrl: event.imageUrl!,
                 fit: BoxFit.cover,
                 placeholder: (context, url) => Container(
                   color: AppColors.surfaceVariant,
@@ -133,7 +205,7 @@ class HeroEventBanner extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    currentEvent.title,
+                    event.title,
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
@@ -144,7 +216,7 @@ class HeroEventBanner extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
 
-                  // Fecha — derivada de event.startDate
+                  // Fecha
                   Row(
                     children: [
                       Icon(
@@ -154,7 +226,7 @@ class HeroEventBanner extends StatelessWidget {
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        _formatearFechaEvento(currentEvent.startDate),
+                        _formatearFechaEvento(event.startDate),
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               color: Colors.white.withAlpha(200),
                               fontWeight: FontWeight.w500,
@@ -163,8 +235,8 @@ class HeroEventBanner extends StatelessWidget {
                     ],
                   ),
 
-                  // Dirección (si existe)
-                  if (currentEvent.address != null) ...[
+                  // Dirección
+                  if (event.address != null) ...[
                     const SizedBox(height: 4),
                     Row(
                       children: [
@@ -176,7 +248,7 @@ class HeroEventBanner extends StatelessWidget {
                         const SizedBox(width: 6),
                         Expanded(
                           child: Text(
-                            currentEvent.address!,
+                            event.address!,
                             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                   color: Colors.white.withAlpha(180),
                                 ),
@@ -237,7 +309,6 @@ class HeroEventBanner extends StatelessWidget {
     );
   }
 
-  /// Formatea la fecha del evento a un texto legible y relativo.
   String _formatearFechaEvento(DateTime date) {
     final now = DateTime.now();
     final difference = date.difference(now).inDays;
