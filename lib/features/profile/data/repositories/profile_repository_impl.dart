@@ -50,4 +50,32 @@ class ProfileRepositoryImpl implements ProfileRepository {
       return [];
     }
   }
+
+  @override
+  Future<PublicProfile> updateProfile({
+    String? displayName,
+    String? avatarUrl,
+  }) async {
+    final currentUser = _client.auth.currentUser;
+    if (currentUser == null) {
+      throw Exception('No hay usuario autenticado');
+    }
+
+    // 1. Actualizar metadata de auth
+    final Map<String, dynamic> data = {};
+    if (displayName != null) data['display_name'] = displayName;
+    if (avatarUrl != null) data['avatar_url'] = avatarUrl;
+
+    if (data.isNotEmpty) {
+      await _client.auth.updateUser(UserAttributes(data: data));
+    }
+
+    // 2. Retornar el perfil actualizado (Supabase trigger suele sincronizar auth.users -> public.profiles)
+    final profile = await getProfileById(currentUser.id);
+    if (profile == null) {
+      throw Exception('Error al recuperar el perfil actualizado');
+    }
+
+    return profile;
+  }
 }

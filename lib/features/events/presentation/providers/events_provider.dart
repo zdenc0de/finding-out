@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/config/supabase_config.dart';
 import '../../../../core/errors/exceptions.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../profile/domain/entities/public_profile.dart';
 import '../../data/repositories/event_repository_impl.dart';
 import '../../domain/entities/category.dart';
