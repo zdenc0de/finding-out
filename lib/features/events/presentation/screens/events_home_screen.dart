@@ -51,6 +51,7 @@ class _EventsHomeScreenState extends ConsumerState<EventsHomeScreen> {
       backgroundColor: AppColors.background,
       body: RefreshIndicator(
         onRefresh: () async {
+          ref.invalidate(friendsActivityProvider);
           await ref.read(eventsNotifierProvider.notifier).refresh();
         },
         child: CustomScrollView(

@@ -9,6 +9,7 @@ import '../../../profile/domain/entities/public_profile.dart';
 import '../../domain/entities/category.dart';
 import '../../domain/entities/event.dart';
 import '../../domain/entities/event_attendance.dart';
+import '../../domain/entities/friend_event_activity.dart';
 import '../../domain/repositories/event_repository.dart';
 import '../models/category_model.dart';
 import '../models/event_attendance_model.dart';
@@ -282,6 +283,100 @@ class EventRepositoryImpl implements EventRepository {
               PublicProfileModel.fromJson(json as Map<String, dynamic>))
           .map((model) => model.toEntity())
           .toList();
+    } catch (e) {
+      return [];
+    }
+  }
+
+  @override
+  Future<List<FriendEventActivity>> getFriendsActivity() async {
+    final currentUserId = _currentUserId;
+    if (currentUserId == null) return [];
+
+    try {
+      // 1. Obtener IDs de usuarios que sigo
+      final followingResponse = await _client
+          .from('followers')
+          .select('following_id')
+          .eq('follower_id', currentUserId);
+
+      final followingIds = (followingResponse as List<dynamic>)
+          .map((item) => item['following_id'] as String)
+          .toList();
+
+      if (followingIds.isEmpty) return [];
+
+      // 2. Obtener asistencias de amigos (limitado a 'going')
+      final attendeesResponse = await _client
+          .from('event_attendees')
+          .select('event_id, user_id')
+          .eq('status', 'going')
+          .inFilter('user_id', followingIds);
+
+      final attendees = (attendeesResponse as List<dynamic>);
+      if (attendees.isEmpty) return [];
+
+      final eventIds = attendees.map((a) => a['event_id'] as String).toSet().toList();
+
+      // 3. Obtener detalles de esos eventos (solo próximos)
+      final now = DateTime.now().toUtc().toIso8601String();
+      final eventsResponse = await _client
+          .from('events')
+          .select()
+          .inFilter('id', eventIds)
+          .gte('start_date', now)
+          .order('start_date', ascending: true)
+          .limit(5); // Tomamos solo los 5 más próximos con actividad
+
+      final events = (eventsResponse as List<dynamic>)
+          .map((json) => EventModel.fromJson(json as Map<String, dynamic>))
+          .map((model) => model.toEntity())
+          .toList();
+
+      if (events.isEmpty) return [];
+
+      // IDs de eventos que realmente son próximos
+      final validEventIds = events.map((e) => e.id).toList();
+      
+      // 4. Obtener perfiles de los amigos involucrados
+      final involvedFriendIds = attendees
+          .where((a) => validEventIds.contains(a['event_id']))
+          .map((a) => a['user_id'] as String)
+          .toSet()
+          .toList();
+
+      final profilesResponse = await _client
+          .from('profiles')
+          .select('id, display_name, avatar_url, created_at')
+          .inFilter('id', involvedFriendIds);
+
+      final profiles = (profilesResponse as List<dynamic>)
+          .map((json) => PublicProfileModel.fromJson(json as Map<String, dynamic>))
+          .map((model) => model.toEntity())
+          .toList();
+
+      // 5. Agrupar y construir la respuesta
+      final List<FriendEventActivity> activityList = [];
+
+      for (final event in events) {
+        final friendIdsForThisEvent = attendees
+            .where((a) => a['event_id'] == event.id)
+            .map((a) => a['user_id'] as String)
+            .toList();
+        
+        final friendsForThisEvent = profiles
+            .where((p) => friendIdsForThisEvent.contains(p.id))
+            .toList();
+
+        if (friendsForThisEvent.isNotEmpty) {
+          activityList.add(FriendEventActivity(
+            event: event,
+            friends: friendsForThisEvent,
+          ));
+        }
+      }
+
+      return activityList;
     } catch (e) {
       return [];
     }

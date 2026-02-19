@@ -10,6 +10,7 @@ import '../../data/repositories/event_repository_impl.dart';
 import '../../domain/entities/category.dart';
 import '../../domain/entities/event.dart';
 import '../../domain/entities/event_attendance.dart';
+import '../../domain/entities/friend_event_activity.dart';
 import '../../domain/repositories/event_repository.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -354,4 +355,14 @@ final eventsByCreatorProvider =
     FutureProvider.family<List<Event>, String>((ref, userId) async {
   final repository = ref.watch(eventRepositoryProvider);
   return repository.getEventsByCreator(userId);
+});
+
+/// Provider para obtener la actividad de amigos en eventos próximos.
+final friendsActivityProvider = FutureProvider<List<FriendEventActivity>>((ref) async {
+  // Observamos el estado de auth para reaccionar a cambios de usuario
+  final authState = ref.watch(authNotifierProvider);
+  if (authState.user == null) return [];
+  
+  final repository = ref.watch(eventRepositoryProvider);
+  return repository.getFriendsActivity();
 });

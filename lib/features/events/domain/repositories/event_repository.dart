@@ -5,6 +5,7 @@ import '../../../profile/domain/entities/public_profile.dart';
 import '../entities/category.dart';
 import '../entities/event.dart';
 import '../entities/event_attendance.dart';
+import '../entities/friend_event_activity.dart';
 
 /// Contrato del repositorio de eventos.
 ///
@@ -59,6 +60,9 @@ abstract class EventRepository {
 
   /// Obtiene los amigos (usuarios seguidos) que van a un evento.
   Future<List<PublicProfile>> getFriendsAttending(String eventId);
+
+  /// Obtiene la actividad de los amigos (usuarios seguidos) en eventos próximos.
+  Future<List<FriendEventActivity>> getFriendsActivity();
 
   /// Obtiene el conteo total de asistentes a un evento.
   Future<int> getAttendeeCount(String eventId);
