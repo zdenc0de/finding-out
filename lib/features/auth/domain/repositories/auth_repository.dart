@@ -32,6 +32,12 @@ abstract class AuthRepository {
     String? avatarUrl,
   });
 
+  /// Inicia sesión con Google
+  Future<void> signInWithGoogle();
+
+  /// Inicia sesión con Apple
+  Future<void> signInWithApple();
+
   AppUser? getCurrentUser();
 
   Stream<AppUser?> get authStateChanges;

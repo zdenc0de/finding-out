@@ -42,15 +42,18 @@ abstract class AppRoutes {
 
 /// Provider de GoRouter que escucha cambios de autenticación
 ///
-/// Usa [authNotifierProvider] para determinar si el usuario está autenticado
-/// y redirige automáticamente según el estado.
+/// Usa [routerNotifierProvider] para determinar cuándo debe refrescarse el router
+/// y [authNotifierProvider] para obtener el estado de autenticación.
 final routerProvider = Provider<GoRouter>((ref) {
-  // Escuchamos el estado de autenticación
-  final authState = ref.watch(authNotifierProvider);
+  // Escuchamos el routerNotifier para que el router se actualice ante cambios
+  final listenable = ref.watch(routerNotifierProvider);
 
   return GoRouter(
     // Ruta inicial: empezamos en splash mientras verificamos auth
     initialLocation: AppRoutes.splash,
+
+    // Notificamos al router cuando cambia el estado de auth
+    refreshListenable: listenable,
 
     // debugLogDiagnostics: true, // Descomentar para debug
 
@@ -213,14 +216,11 @@ final routerProvider = Provider<GoRouter>((ref) {
 
     // ═══════════════════════════════════════════════════════════════════
     // REDIRECT: Lógica de protección de rutas
-    //
-    // Esta función se ejecuta ANTES de cada navegación y decide:
-    // - Si el usuario puede acceder a la ruta solicitada
-    // - Si debe ser redirigido a otra ruta
     // ═══════════════════════════════════════════════════════════════════
     redirect: (context, state) {
-      // Obtenemos el estado actual de autenticación
-      // profileUpdated también cuenta como autenticado (usuario sigue logueado)
+      // Obtenemos el estado actual de autenticación (sin watch, ya que refreshListenable dispara el refresh)
+      final authState = ref.read(authNotifierProvider);
+
       final isAuthenticated = authState.status == AuthStatus.authenticated ||
           authState.status == AuthStatus.profileUpdated;
       final isLoading = authState.status == AuthStatus.loading ||
