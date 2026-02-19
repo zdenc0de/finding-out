@@ -48,6 +48,16 @@ class MockAuthRepository implements AuthRepository {
   }
 
   @override
+  Future<void> signInWithGoogle() {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> signInWithApple() {
+    throw UnimplementedError();
+  }
+
+  @override
   AppUser? getCurrentUser() {
     throw UnimplementedError();
   }
