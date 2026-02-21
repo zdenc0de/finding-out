@@ -7,6 +7,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
+import '../../../../core/providers/location_provider.dart';
+import '../../../../core/providers/user_city_provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../domain/entities/event.dart';
@@ -34,9 +36,10 @@ class _EventsHomeScreenState extends ConsumerState<EventsHomeScreen> {
   @override
   void initState() {
     super.initState();
-    // Cargar eventos al iniciar
+    // Cargar eventos y obtener ubicación al iniciar
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(eventsNotifierProvider.notifier).loadEventsGroupedByCategory();
+      ref.read(locationNotifierProvider.notifier).getCurrentLocation();
     });
   }
 
@@ -46,6 +49,8 @@ class _EventsHomeScreenState extends ConsumerState<EventsHomeScreen> {
     final filteredEvents = ref.watch(filteredEventsByCategoryProvider);
     final authState = ref.watch(authNotifierProvider);
     final user = authState.user;
+    final cityAsync = ref.watch(userCityProvider);
+    final cityName = cityAsync.valueOrNull ?? 'Ubicación';
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -85,7 +90,7 @@ class _EventsHomeScreenState extends ConsumerState<EventsHomeScreen> {
                         ),
                         const SizedBox(width: 6),
                         Text(
-                          'Monterrey', // TODO: Hacer dinámico
+                          cityName,
                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.onSurface,
@@ -227,6 +232,64 @@ class _EventsHomeScreenState extends ConsumerState<EventsHomeScreen> {
     return eventsByCategory.values.expand((e) => e).toList();
   }
 
+  /// Calcula una puntuación de relevancia para un evento.
+  ///
+  /// Criterios:
+  /// - Proximidad temporal: eventos más próximos puntúan más
+  /// - Tiene imagen: indica mayor esfuerzo/promoción
+  /// - Tiene ubicación: evento más completo
+  double _eventScore(Event event) {
+    double score = 0;
+    final now = DateTime.now();
+    final hoursUntil = event.startDate.difference(now).inHours;
+
+    // Proximidad temporal (máx 50 pts)
+    // Eventos para hoy o mañana puntúan más alto
+    if (hoursUntil >= 0 && hoursUntil <= 24) {
+      score += 50; // Hoy
+    } else if (hoursUntil > 24 && hoursUntil <= 72) {
+      score += 35; // Próximos 3 días
+    } else if (hoursUntil > 72 && hoursUntil <= 168) {
+      score += 20; // Esta semana
+    } else if (hoursUntil > 0) {
+      score += 5;  // Más adelante
+    }
+    // Eventos pasados obtienen puntuación 0 de proximidad
+
+    // Tiene imagen (20 pts) — indica mayor esfuerzo/promoción
+    if (event.imageUrl != null && event.imageUrl!.isNotEmpty) {
+      score += 20;
+    }
+
+    // Tiene ubicación completa (15 pts) — evento más detallado
+    if (event.locationLat != null && event.locationLng != null) {
+      score += 10;
+    }
+    if (event.address != null && event.address!.isNotEmpty) {
+      score += 5;
+    }
+
+    // Tiene descripción (10 pts) — contenido más completo
+    if (event.description != null && event.description!.isNotEmpty) {
+      score += 10;
+    }
+
+    return score;
+  }
+
+  /// Retorna los eventos ordenados por puntuación de relevancia (mayor primero).
+  List<Event> _getRankedEvents(Map<Category, List<Event>> eventsByCategory) {
+    final allEvents = _getAllEvents(eventsByCategory);
+    // Eliminar duplicados por ID (un evento puede estar en múltiples categorías)
+    final uniqueEvents = <String, Event>{};
+    for (final event in allEvents) {
+      uniqueEvents[event.id] = event;
+    }
+    final events = uniqueEvents.values.toList();
+    events.sort((a, b) => _eventScore(b).compareTo(_eventScore(a)));
+    return events;
+  }
+
   Widget _buildHeroSection(EventsState state, Map<Category, List<Event>> filteredEvents) {
     if (state.status == EventsStatus.loading) {
       return const SizedBox(
@@ -235,11 +298,11 @@ class _EventsHomeScreenState extends ConsumerState<EventsHomeScreen> {
       );
     }
 
-    final allEvents = _getAllEvents(filteredEvents);
-    if (allEvents.isEmpty) return const SizedBox.shrink();
+    final rankedEvents = _getRankedEvents(filteredEvents);
+    if (rankedEvents.isEmpty) return const SizedBox.shrink();
 
-    // Tomamos los primeros 3 eventos como destacados para el carrusel
-    final featuredEvents = allEvents.take(3).toList();
+    // Tomamos los top 3 eventos mejor puntuados para el carrusel
+    final featuredEvents = rankedEvents.take(3).toList();
 
     return HeroEventBanner(
       events: featuredEvents,
@@ -248,12 +311,12 @@ class _EventsHomeScreenState extends ConsumerState<EventsHomeScreen> {
   }
 
   Widget _buildTrendingSection(EventsState state, Map<Category, List<Event>> filteredEvents) {
-    final allEvents = _getAllEvents(filteredEvents);
+    final rankedEvents = _getRankedEvents(filteredEvents);
     
-    // Saltamos los que ya están en el hero (primeros 3) y tomamos los siguientes 5
-    if (allEvents.length <= 3) return const SizedBox.shrink();
+    // Saltamos los que ya están en el hero (top 3) y tomamos los siguientes 5
+    if (rankedEvents.length <= 3) return const SizedBox.shrink();
 
-    final trendingEvents = allEvents.skip(3).take(5).toList();
+    final trendingEvents = rankedEvents.skip(3).take(5).toList();
 
     return TrendingEventsSection(
       events: trendingEvents,

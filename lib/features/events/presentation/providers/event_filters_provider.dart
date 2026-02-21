@@ -2,6 +2,11 @@
 // Providers para gestionar los filtros rápidos de eventos
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:latlong2/latlong.dart';
+
+import '../../../../core/providers/location_provider.dart';
+import '../../../../core/services/location/location_state.dart';
+import '../../../../core/utils/location_helper.dart';
 import '../../domain/entities/category.dart';
 import '../../domain/entities/event.dart';
 import 'events_provider.dart';
@@ -21,6 +26,9 @@ enum EventFilter {
   const EventFilter(this.label);
 }
 
+/// Radio de búsqueda para el filtro "Cerca de mí" en kilómetros.
+const double _nearMeRadiusKm = 15.0;
+
 /// Provider para el filtro seleccionado actualmente.
 final selectedEventFilterProvider = StateProvider<EventFilter>((ref) => EventFilter.all);
 
@@ -31,6 +39,24 @@ final filteredEventsByCategoryProvider = Provider<Map<Category, List<Event>>>((r
   
   if (eventsState.eventsByCategory.isEmpty) return {};
   if (selectedFilter == EventFilter.all) return eventsState.eventsByCategory;
+
+  // Obtener posición del usuario solo si se necesita para el filtro
+  LatLng? userPosition;
+  if (selectedFilter == EventFilter.nearMe) {
+    final locationState = ref.watch(locationNotifierProvider);
+    if (locationState.status == LocationStatus.success) {
+      userPosition = locationState.position;
+    }
+  }
+
+  // Obtener IDs de eventos con actividad de amigos si se necesita
+  Set<String>? friendsEventIds;
+  if (selectedFilter == EventFilter.friends) {
+    final friendsActivity = ref.watch(friendsActivityProvider);
+    friendsEventIds = friendsActivity.valueOrNull
+        ?.map((a) => a.event.id)
+        .toSet();
+  }
 
   final Map<Category, List<Event>> filteredMap = {};
   final now = DateTime.now();
@@ -60,19 +86,24 @@ final filteredEventsByCategoryProvider = Provider<Map<Category, List<Event>>>((r
                  event.startDate.isBefore(sunday.add(const Duration(seconds: 1)));
                  
         case EventFilter.free:
-          // Buscamos 'gratis', 'free', '0' o similar en descripción
           return descLower.contains('gratis') || 
                  descLower.contains('entrada libre') || 
                  descLower.contains('sin costo') ||
                  titleLower.contains('gratis');
           
         case EventFilter.nearMe:
-          // TODO: Implementar filtrado por distancia real
-          return true; 
+          // Filtrado por distancia real usando Haversine
+          if (userPosition == null) return true; // Sin ubicación → mostrar todos
+          if (event.locationLat == null || event.locationLng == null) return false;
+          
+          final eventPosition = LatLng(event.locationLat!, event.locationLng!);
+          final distance = LocationHelper.distanceInKm(userPosition, eventPosition);
+          return distance <= _nearMeRadiusKm;
           
         case EventFilter.friends:
-          // TODO: Implementar lógica de amigos
-          return true;
+          // Filtrar solo eventos donde amigos tienen actividad
+          if (friendsEventIds == null || friendsEventIds.isEmpty) return false;
+          return friendsEventIds.contains(event.id);
           
         case EventFilter.music:
           return categoryNameLower.contains('música') || 
