@@ -1,15 +1,15 @@
 // lib/features/events/presentation/widgets/home_widgets/stories_rail.dart
 // Rail horizontal de stories / eventos en vivo ("Happening Now").
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../../../../core/theme/app_colors.dart';
 
 /// Rail horizontal que muestra stories de eventos en vivo.
 ///
-/// Actualmente usa datos de ejemplo. Conectar a un proveedor
-/// real (ej. un Riverpod provider) para mostrar eventos en vivo reales.
+/// Actualmente usa datos de ejemplo con imágenes locales.
+/// Conectar a un proveedor real (ej. un Riverpod provider)
+/// para mostrar eventos en vivo reales.
 class StoriesRail extends StatelessWidget {
   const StoriesRail({super.key});
 
@@ -17,12 +17,12 @@ class StoriesRail extends StatelessWidget {
   Widget build(BuildContext context) {
     // Datos de ejemplo — reemplazar con datos reales de un provider
     final stories = [
-      const _StoryData(name: 'Go Live', isLive: false, imageUrl: null, isAction: true),
-      const _StoryData(name: 'Beach Part...', isLive: true, imageUrl: 'https://images.unsplash.com/photo-1544498565-5c128522e84d?w=150'),
-      const _StoryData(name: 'Food Fest', isLive: true, imageUrl: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=150'),
-      const _StoryData(name: 'Gallery', isLive: true, imageUrl: 'https://images.unsplash.com/photo-1460661618165-24d85830b802?w=150'),
-      const _StoryData(name: 'Comedy', isLive: true, imageUrl: 'https://images.unsplash.com/photo-1520263115673-611416db79d4?w=150'),
-      const _StoryData(name: 'More', isLive: false, imageUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150'),
+      const _StoryData(name: 'Go Live', isLive: false, assetPath: null, isAction: true),
+      const _StoryData(name: 'Beach Party', isLive: true, assetPath: 'assets/images/stories/story_beach_party.png'),
+      const _StoryData(name: 'Food Fest', isLive: true, assetPath: 'assets/images/stories/story_food_fest.png'),
+      const _StoryData(name: 'Gallery', isLive: true, assetPath: 'assets/images/stories/story_art_gallery.png'),
+      const _StoryData(name: 'Comedy', isLive: true, assetPath: 'assets/images/stories/story_comedy_show.png'),
+      const _StoryData(name: 'Más', isLive: false, assetPath: 'assets/images/stories/story_more_events.png'),
     ];
 
     return Column(
@@ -118,12 +118,13 @@ class StoriesRail extends StatelessWidget {
         ),
         padding: const EdgeInsets.all(2),
         child: ClipOval(
-          child: story.imageUrl != null
-              ? CachedNetworkImage(
-                  imageUrl: story.imageUrl!,
+          child: story.assetPath != null
+              ? Image.asset(
+                  story.assetPath!,
                   fit: BoxFit.cover,
-                  placeholder: (context, url) => Container(color: AppColors.surfaceVariant),
-                  errorWidget: (context, url, error) => Container(
+                  width: 60,
+                  height: 60,
+                  errorBuilder: (context, error, stackTrace) => Container(
                     color: AppColors.surfaceVariant,
                     child: Icon(PhosphorIcons.user(), size: 24, color: AppColors.onSurfaceVariant),
                   ),
@@ -144,13 +145,14 @@ class StoriesRail extends StatelessWidget {
 class _StoryData {
   final String name;
   final bool isLive;
-  final String? imageUrl;
+  final String? assetPath;
   final bool isAction;
 
   const _StoryData({
     required this.name,
     required this.isLive,
-    this.imageUrl,
+    this.assetPath,
     this.isAction = false,
   });
 }
+

@@ -97,11 +97,7 @@ class _EventsHomeScreenState extends ConsumerState<EventsHomeScreen> {
                               ),
                         ),
                         const SizedBox(width: 4),
-                        Icon(
-                          PhosphorIcons.caretDown(),
-                          color: AppColors.onSurfaceVariant,
-                          size: 12,
-                        ),
+                        
                       ],
                     ),
                   ),
@@ -165,11 +161,6 @@ class _EventsHomeScreenState extends ConsumerState<EventsHomeScreen> {
                               color: AppColors.surface,
                               shape: BoxShape.circle,
                               border: Border.all(color: AppColors.outlineVariant),
-                            ),
-                            child: Icon(
-                              PhosphorIcons.slidersHorizontal(),
-                              color: AppColors.onSurface,
-                              size: 16,
                             ),
                           ),
                         ],
