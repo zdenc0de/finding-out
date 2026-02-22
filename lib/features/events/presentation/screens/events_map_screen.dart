@@ -19,6 +19,7 @@ import '../providers/events_provider.dart';
 import '../providers/featured_events_provider.dart';
 import '../widgets/shared/category_chips.dart';
 import '../widgets/map_widgets/event_bottom_sheet.dart';
+import '../widgets/map_widgets/event_list_bottom_sheet.dart';
 import '../widgets/map_widgets/featured_events_sheet.dart';
 import '../widgets/map_widgets/map_controls.dart';
 import '../widgets/map_widgets/map_search_bar.dart';
@@ -215,7 +216,9 @@ class _EventsMapScreenState extends ConsumerState<EventsMapScreen> {
   }
 
   Set<Marker> _buildEventMarkers(Map<dynamic, List<Event>> eventsByCategory) {
-    final Set<Marker> markers = {};
+    // Agrupar eventos por clave de ubicación para detectar superposiciones
+    final Map<String, List<EventWithColor>> eventsByLocation = {};
+    final Map<String, double> hueByLocation = {};
 
     for (final entry in eventsByCategory.entries) {
       final category = entry.key;
@@ -225,16 +228,42 @@ class _EventsMapScreenState extends ConsumerState<EventsMapScreen> {
       for (final event in events) {
         if (LocationHelper.isValidCoordinate(
             event.locationLat, event.locationLng)) {
-          markers.add(
-            Marker(
-              markerId: MarkerId(event.id),
-              position: LatLng(event.locationLat!, event.locationLng!),
-              icon: BitmapDescriptor.defaultMarkerWithHue(hue),
-              onTap: () => _showEventBottomSheet(event, category.color),
-            ),
+          final key = '${event.locationLat},${event.locationLng}';
+          eventsByLocation.putIfAbsent(key, () => []);
+          eventsByLocation[key]!.add(
+            EventWithColor(event: event, categoryColor: category.color),
           );
+          // Guardar el hue del primer evento para el color del marcador
+          hueByLocation.putIfAbsent(key, () => hue);
         }
       }
+    }
+
+    // Crear un solo marcador por ubicación
+    final Set<Marker> markers = {};
+    for (final entry in eventsByLocation.entries) {
+      final eventsAtLocation = entry.value;
+      final firstEvent = eventsAtLocation.first.event;
+      final position = LatLng(firstEvent.locationLat!, firstEvent.locationLng!);
+      final hue = hueByLocation[entry.key] ?? BitmapDescriptor.hueRed;
+
+      markers.add(
+        Marker(
+          markerId: MarkerId('loc_${entry.key}'),
+          position: position,
+          icon: BitmapDescriptor.defaultMarkerWithHue(hue),
+          onTap: () {
+            if (eventsAtLocation.length == 1) {
+              _showEventBottomSheet(
+                eventsAtLocation.first.event,
+                eventsAtLocation.first.categoryColor,
+              );
+            } else {
+              _showEventsListBottomSheet(eventsAtLocation);
+            }
+          },
+        ),
+      );
     }
 
     return markers;
@@ -307,6 +336,15 @@ class _EventsMapScreenState extends ConsumerState<EventsMapScreen> {
         event: event,
         categoryColor: categoryColor,
       ),
+    );
+  }
+
+  void _showEventsListBottomSheet(List<EventWithColor> events) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => EventListBottomSheet(events: events),
     );
   }
 
